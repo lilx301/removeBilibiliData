@@ -1,15 +1,26 @@
 import re
 import time
+import sys
+import os
+import random
 
-import requests
+sys.path.insert(0, os.path.abspath("pylib"))
+import requests 
 
-Cookie = ""
+import base64
+
+Cookie64 = os.getenv('COOKIE64')
+Cookie=base64.b64decode(Cookie64.encode('ascii')).decode('utf-8')
+
+
+
 csrf = re.findall(r'bili_jct=(\S+)', Cookie)[0].split(";")[0]
 uid = re.findall(r'DedeUserID=(\S+)', Cookie)[0].split(";")[0]
 # 粉丝数为0的时候 设置为0
 Flag = 1
 
-
+#print
+print("print Start")
 # 经测试 一天只能移除500个粉丝 超过500个会提示 {'code': -509, 'message': '请求过于频繁，请稍后再试', 'ttl': 1}
 
 # 获取粉丝列表
@@ -29,6 +40,8 @@ def fansList():
         'Referer': 'https://space.bilibili.com/21307077/fans/fans',
         'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36"
     }
+    # 允许出错3次，避免长时间占用 ci
+    ERRCOUNTMAX = 3
     while Flag:
         try:
             response = requests.request('get', url, params=data, headers=headers).json()
@@ -42,13 +55,16 @@ def fansList():
                 uname = response['data']['list'][index]['uname']
                 deleteFans(ruid, uname)
                 # 休眠1s 免得删太快
-                time.sleep(1)
+                time.sleep(3 + random.random() * 3)
             print("粉丝还剩%d个" % fans_num)
             # print(response)
         except Exception as e:
             print(e)
             print("休眠5min")
-            time.sleep(300)
+            ERRCOUNTMAX =  ERRCOUNTMAX - 1
+            if ERRCOUNTMAX <= 0:
+                break
+            time.sleep(30)
             pass
 
 
