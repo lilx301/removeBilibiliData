@@ -16,4 +16,8 @@ Bilibili移除自己的粉丝
 在github secret 中设置 COOKIE64=Base64(bilibil cookie)
 
 
+#TODO
+刷新cookie，果然事情没这么简单。  
+[接口参考这里](https://github.com/SocialSisterYi/bilibili-API-collect/issues/524)
+
   
