@@ -18,6 +18,10 @@ Bilibili移除自己的粉丝
 
 #TODO
 刷新cookie，果然事情没这么简单。  
-[接口参考这里](https://github.com/SocialSisterYi/bilibili-API-collect/issues/524)
+
+
+[接口这里](https://github.com/SocialSisterYi/bilibili-API-collect/blob/master/docs/login/cookie_refresh.md)
+
+[这里](https://github.com/SocialSisterYi/bilibili-API-collect/issues/524)
 
   
