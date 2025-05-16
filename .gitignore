@@ -1,3 +1,6 @@
 pylib
 pylib/*
 cookie.txt
+cfg.json
+cfgA*
+__pycache__
