@@ -60,7 +60,7 @@ jobs:
       run: |
           git add .
           git diff --cached --quiet || git commit -m "chore: auto format [ci skip]"
-          git push origin HEAD:main
+          git push origin HEAD:master
       env:
           # 需要使用 GitHub Token 授权 push
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
