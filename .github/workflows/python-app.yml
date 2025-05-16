@@ -47,12 +47,9 @@ jobs:
         ls -al 
     - name: Delete
       run: |
-        echo "can you see me ?"
         python3 -u deleteFans.py
-
-        echo "and ME?"
       env:
-        COOKIE64: '${{ secrets.CFGKEY }}'
+        CFGKEY: '${{ secrets.CFGKEY }}'
 
     - name: Configure Git
       run: |
