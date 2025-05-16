@@ -52,7 +52,7 @@ jobs:
 
         echo "and ME?"
       env:
-        COOKIE64: '${{ secrets.COOKIE64 }}'
+        COOKIE64: '${{ secrets.CFGKEY }}'
 
     - name: Configure Git
       run: |
