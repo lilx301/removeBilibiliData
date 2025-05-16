@@ -11,6 +11,12 @@ import base64
 import json
 from aes import AEScoder 
 
+import refreshCookie
+refreshCookie.checkCookie()
+
+
+
+
 cfgEnc =  open('cfg.json.enc').read()
 enc=AEScoder(os.getenv('CFGKEY'))
 jstring = enc.decrypt(cfgEnc)
