@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   push_back:
-      needs: build
+      needs: RemoveFans
       runs-on: ubuntu-latest
       permissions:
         contents: write
@@ -38,7 +38,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   del_runs:
-      needs: build
+      needs: RemoveFans
       runs-on: ubuntu-latest
       permissions:
         actions: write
@@ -51,7 +51,7 @@ jobs:
             repository: ${{ github.repository }}
             retain_days: 1
             keep_minimum_runs: 1
-  build:
+  RemoveFans:
 
     runs-on: ubuntu-latest
 
