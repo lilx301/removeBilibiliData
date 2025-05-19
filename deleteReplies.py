@@ -39,7 +39,8 @@ print("print Start")
 
 # 获取屏幕列表
 def getReplyList(idx):
-    url = f"https://api.aicu.cc/api/v3/search/getreply?uid={uid}&pn={idx}&ps=100&mode=0&keyword="
+    url = f"https://n.kr7y.workers.dev/https://api.aicu.cc/api/v3/search/getreply?uid={uid}&pn={idx}&ps=100&mode=0&keyword="
+    print(url)
     headers = {
         'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36"
     }
