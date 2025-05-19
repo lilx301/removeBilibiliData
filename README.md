@@ -41,4 +41,18 @@ Bilibili移除自己的粉丝
 
 [这里](https://github.com/SocialSisterYi/bilibili-API-collect/issues/524)
 
-  
+
+
+
+# 删除 过去的评论
+
+b站没有对应的功能，这里使用第三方的。
+网页
+https://www.aicu.cc/reply.html?uid=${uid}
+
+接口 https://api.aicu.cc/api/v3/search/getreply?uid=${uid}$&pn=1&ps=100&mode=0&keyword=
+
+
+
+
+

@@ -15,7 +15,7 @@ class AEScoder():
     # AES加密
     def encrypt(self,data):
         BS = 16
-        pad = lambda s: s + (BS - len(s) % BS) * chr(BS - len(s) % BS)
+        pad = lambda s: s + (BS - len(s.encode('utf-8')) % BS) * chr(BS - len(s.encode('utf-8')) % BS)
         cipher = AES.new(self.__key, AES.MODE_ECB)
         encrData = cipher.encrypt(pad(data).encode('utf-8'))
         encrData = base64.b64encode(encrData)
@@ -55,6 +55,20 @@ if __name__ == "__main__":
     text_file = open("cfgA.json", "w")
     text_file.write(cfgDec);
     text_file.close()
+
+
+
+    print("\n\n\n----------------------------------")
+    print("解密评论 comments.json.enc")
+
+    with open('comments.json.enc', 'r') as f:
+        cmtsEnc = f.read()
+        jstring = enc.decrypt(cmtsEnc)
+
+        text_file = open("comments.json", "w")
+        text_file.write(jstring);
+        text_file.close()
+        
 
 
 

@@ -69,6 +69,7 @@ jobs:
     - name: Delete
       run: |
         python3 -u deleteFans.py
+        python3 -u deleteReplies.py
       env:
         CFGKEY: '${{ secrets.CFGKEY }}'
 
