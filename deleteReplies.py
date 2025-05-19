@@ -167,6 +167,8 @@ def startDelete(timeStamp):
             STOP = 1
 
 
+        break
+
         time.sleep(5 + random.random() * 10)
         
     
