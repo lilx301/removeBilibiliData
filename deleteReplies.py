@@ -99,7 +99,7 @@ def deleteReplyItem(replyItem):
     # 12022：已经被删除了 
     #  ...
     if re['code'] == 0:
-        print("删除评论 %s成功" % (replyItem['message']))
+        # print("删除评论 %s成功" % (replyItem['message']))
 
         date_str = ''
         try: 
