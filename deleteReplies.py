@@ -50,6 +50,8 @@ def getReplyList(idx):
     return re.json()    
 
 
+GCOUNT=1
+
 # 删除一个评论
 def deleteReplyItem(replyItem):
     #
@@ -79,13 +81,17 @@ def deleteReplyItem(replyItem):
         'rpid': replyItem['rpid'],
         'csrf': csrf,
     }
+    
     headers = {
         'Cookie': Cookie,
-        'Host': 'api.bilibili.com',
         'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36"
 
     }
-    re = requests.request('post', url, data=data, headers=headers).json()
+    resObj=requests.request('post', url, data=data, headers=headers)
+    resObj.encoding = 'utf-8'
+    print(resObj.text)
+    re = resObj.json()
+    
     #     0：成功
     # -101：账号未登录
     # -102：账号被封停
@@ -99,7 +105,9 @@ def deleteReplyItem(replyItem):
     # 12022：已经被删除了 
     #  ...
     if re['code'] == 0:
-        # print("删除评论 %s成功" % (replyItem['message']))
+        global GCOUNT
+        print("删除评论 成功" , GCOUNT)
+        GCOUNT = GCOUNT + 1
 
         date_str = ''
         try: 
@@ -143,7 +151,7 @@ def startDelete(timeStamp):
                     if i == -1:
                         continue
 
-                    time.sleep(1 + random.random() * 3)
+                    time.sleep( 0.1)
                 except Exception as e:
                     print("发生异常：", e)
                     break
@@ -158,7 +166,7 @@ def startDelete(timeStamp):
             STOP = 1
 
 
-        time.sleep(10)
+        time.sleep(5)
         
     
         
