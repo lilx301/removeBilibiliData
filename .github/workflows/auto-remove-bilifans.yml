@@ -62,9 +62,9 @@ jobs:
       run: |
             git config user.name "github-actions[bot]"
             git config user.email "githubci"
-            git add .
-            git diff --cached --quiet || git commit -m "chore: auto format [ci skip]"
             git status
+            git add .
+            git diff --cached --quiet || git commit -m "[ci skip]"
             git push origin HEAD:master
 
 
