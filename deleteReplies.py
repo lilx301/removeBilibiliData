@@ -39,13 +39,13 @@ print("print Start")
 
 # 获取屏幕列表
 def getReplyList(idx):
-    url = f"https://n.kr7y.workers.dev/https://api.aicu.cc/api/v3/search/getreply?uid={uid}&pn={idx}&ps=100&mode=0&keyword="
+    url = f"https://n.kr7y.workers.dev/https://api.aicu.cc/api/v3/search/getreply?uid={uid}&pn={idx}&ps=300&mode=0&keyword="
     headers = {
         'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36"
     }
     # 允许出错3次，避免长时间占用 ci
 
-    re = requests.request('get', url, headers=headers)
+    re = requests.request('get', url, headers=headers,timeout=5)
 
     return re.json()    
 
@@ -87,9 +87,7 @@ def deleteReplyItem(replyItem):
         'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36"
 
     }
-    resObj=requests.request('post', url, data=data, headers=headers)
-    resObj.encoding = 'utf-8'
-    print(resObj.text)
+    resObj=requests.request('post', url, data=data, headers=headers,timeout=5)
     re = resObj.json()
     
     #     0：成功
@@ -151,9 +149,10 @@ def startDelete(timeStamp):
                     if i == -1:
                         continue
 
-                    time.sleep( 0.1)
+                    time.sleep( 2 + random.random() * 3)
                 except Exception as e:
                     print("发生异常：", e)
+                    STOP = 1
                     break
         
 
