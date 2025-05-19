@@ -84,7 +84,9 @@ def deleteReplyItem(replyItem):
     
     headers = {
         'Cookie': Cookie,
-        'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36"
+        'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36",
+        'Origin': 'https://space.bilibili.com',
+        'Referer': 'https://space.bilibili.com/21307077/fans/fans',
 
     }
     resObj=requests.request('post', url, data=data, headers=headers,timeout=5)
@@ -165,7 +167,7 @@ def startDelete(timeStamp):
             STOP = 1
 
 
-        time.sleep(5)
+        time.sleep(5 + random.random() * 10)
         
     
         
@@ -199,5 +201,5 @@ except FileNotFoundError:
 if __name__ == '__main__':
     nowSecStamp = int(time.time())
     # 删除时间超过7天的评论
-    startDelete(nowSecStamp - 24 * 3600 * 7)
+    # startDelete(nowSecStamp - 24 * 3600 * 7)
     
