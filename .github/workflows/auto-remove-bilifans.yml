@@ -16,27 +16,7 @@ permissions:
   contents: write
 
 jobs:
-  push_back:
-      needs: RemoveFans
-      runs-on: ubuntu-latest
-      permissions:
-        contents: write
-      steps:
-        - uses: actions/checkout@v4
-        - name: Configure Git
-          run: |
-            git config user.name "github-actions[bot]"
-            git config user.email "githubci"
-
-        - name: Commit and Push changes
-          run: |
-            git add .
-            git diff --cached --quiet || git commit -m "chore: auto format [ci skip]"
-            git status
-            git push origin HEAD:master
-      env:
-          # 需要使用 GitHub Token 授权 push
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  
 
   del_runs:
       needs: RemoveFans
@@ -73,5 +53,20 @@ jobs:
         python3 -u deleteReplies.py
       env:
         CFGKEY: '${{ secrets.CFGKEY }}'
+
+    - name: pushBack
+      env:
+          # 需要使用 GitHub Token 授权 push
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      run: |
+            git config user.name "github-actions[bot]"
+            git config user.email "githubci"
+            git add .
+            git diff --cached --quiet || git commit -m "chore: auto format [ci skip]"
+            git status
+            git push origin HEAD:master
+
+
 
     
