@@ -201,5 +201,5 @@ except FileNotFoundError:
 if __name__ == '__main__':
     nowSecStamp = int(time.time())
     # 删除时间超过7天的评论
-    # startDelete(nowSecStamp - 24 * 3600 * 7)
+    startDelete(nowSecStamp - 24 * 3600 * 7)
     
