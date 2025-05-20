@@ -161,7 +161,7 @@ def checkCookie():
         return
     
 
-    newCookieEnc=enc.encrypt(newCookie)
+    newCookieEnc=base64.b64encode(newCookie.encode("utf-8"))
     jsonOBJ['COOKIE64'] = newCookieEnc
     jsonStrNew = json.dumps(jsonOBJ, indent=4)
     cipherNew = enc.encrypt(jsonStrNew)
