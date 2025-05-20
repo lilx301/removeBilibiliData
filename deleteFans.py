@@ -108,4 +108,5 @@ def deleteFans(ruid, uname):
 
 
 if __name__ == '__main__':
+    print('删除粉丝')
     fansList()
