@@ -1,7 +1,6 @@
 import sys
 import os
 sys.path.insert(0, os.path.abspath("pylib"))
-from aes import AEScoder
 import json
 import base64
 import requests
@@ -11,6 +10,8 @@ from Crypto.PublicKey import RSA
 from Crypto.Hash import SHA256
 import binascii
 import time
+
+import config
 
 
 from requests.cookies import RequestsCookieJar
@@ -59,6 +60,10 @@ def getValueFromCookie(cookie, name):
             return item[len(name) + 1:]
     return None
 
+def getReqWithCookie():
+    session = requests.Session()
+    set_cookies_from_string(session,cookie_str=getCookie())
+    return session
 
 def checkIfNeedUpdate(Cookie,ac_time_value):
 
@@ -142,14 +147,10 @@ def checkIfNeedUpdate(Cookie,ac_time_value):
     return newCookieStr
 
 def checkCookie():
-    cfgEnc=''
-    with open('cfg.json.enc') as f:
-        cfgEnc =  f.read()
+    
 
 
-    enc=AEScoder(os.getenv('CFGKEY'))
-    jstring = enc.decrypt(cfgEnc)
-    jsonOBJ = json.loads(jstring)
+    jsonOBJ = config.getJsonConfig('cfg')
     # 登录成功后 在 locastoage.getItem(ac_time_value)
     ac_time_value = jsonOBJ['ac_time_value']
     Cookie64 = jsonOBJ['COOKIE64']
@@ -163,12 +164,15 @@ def checkCookie():
 
     newCookieEnc=base64.b64encode(newCookie.encode("utf-8"))
     jsonOBJ['COOKIE64'] = newCookieEnc
-    jsonStrNew = json.dumps(jsonOBJ, indent=4)
-    cipherNew = enc.encrypt(jsonStrNew)
-    
-    with open('cfg.json.enc','w') as f:
-        f.write(cipherNew)
+    config.saveJsonConfig('cfg')
 
+
+def getCookie():
+    jsonOBJ = config.getJsonConfig('cfg')
+    Cookie64 = jsonOBJ['COOKIE64']
+    Cookie=base64.b64decode(Cookie64.encode('ascii')).decode('utf-8').strip()
+    return Cookie
+    
     
 
 

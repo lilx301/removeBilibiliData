@@ -15,14 +15,12 @@ import refreshCookie
 # refreshCookie.checkCookie()
 
 
+import config
 
 
 
 
-cfgEnc =  open('cfg.json.enc').read()
-ENCTOOL=AEScoder(os.getenv('CFGKEY'))
-jstring = ENCTOOL.decrypt(cfgEnc)
-jsonOBJ = json.loads(jstring)
+jsonOBJ = config.getJsonConfig('cfg')
 
 Cookie64 = jsonOBJ['COOKIE64']
 Cookie=base64.b64decode(Cookie64.encode('ascii')).decode('utf-8').strip()
@@ -176,26 +174,12 @@ def startDelete(timeStamp):
 
     
 def saveJson(jsonOBJ,name):
-    jsonStrNew = json.dumps(jsonOBJ, indent=4,ensure_ascii=False)
-    cipherNew = ENCTOOL.encrypt(jsonStrNew)
-    
-    with open(f"{name}.json.enc",'w') as f:
-        f.write(cipherNew)
-
-    if os.getenv('DEBUG') is not None and os.getenv('DEBUG') == '1':
-        with open(f"{name}.json",'w') as f:
-            f.write(jsonStrNew)
+    config.saveJsonConfig(jsonOBJ,name)
+     
     
 
-commensMap = {}
-try:
-    with open('comments.json.enc', 'r') as f:
-        cmtsEnc = f.read()
-        jstring = ENCTOOL.decrypt(cmtsEnc)
-        commensMap = json.loads(jstring)
+commensMap = config.getJsonConfig('comments')
 
-except FileNotFoundError:
-    print('第一次运行')
  
 if __name__ == '__main__':
     nowSecStamp = int(time.time())

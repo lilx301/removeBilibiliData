@@ -6,24 +6,9 @@ import random
 
 sys.path.insert(0, os.path.abspath("pylib"))
 import requests 
-
-import base64
-import json
-from aes import AEScoder 
-
 import refreshCookie
-refreshCookie.checkCookie()
-
-
-
-
-cfgEnc =  open('cfg.json.enc').read()
-enc=AEScoder(os.getenv('CFGKEY'))
-jstring = enc.decrypt(cfgEnc)
-jsonOBJ = json.loads(jstring)
-
-Cookie64 = jsonOBJ['COOKIE64']
-Cookie=base64.b64decode(Cookie64.encode('ascii')).decode('utf-8').strip()
+# refreshCookie.checkCookie()
+Cookie= refreshCookie.getCookie()
 
 
 

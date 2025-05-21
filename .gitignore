@@ -5,3 +5,4 @@ comments.json
 cfg.json
 cfgA*
 __pycache__
+*.json
