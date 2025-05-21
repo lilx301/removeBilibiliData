@@ -48,7 +48,8 @@ Bilibili移除自己的粉丝
 
 b站没有对应的功能，这里使用第三方的。
 网页
-https://www.aicu.cc/reply.html?uid=${uid}
+https://www.aicu.cc/reply.html?uid=${uid} 
+> 不是实时，半年更新一次 😂
 
 接口 https://api.aicu.cc/api/v3/search/getreply?uid=${uid}$&pn=1&ps=100&mode=0&keyword=
 
