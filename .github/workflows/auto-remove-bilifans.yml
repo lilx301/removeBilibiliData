@@ -6,6 +6,8 @@ name: Python application
 on:
   push:
     branches: [ "master" ]
+    paths:
+      - modifyThisFileToTrigerCI
   pull_request:
     branches: [ "master" ]
   schedule:
