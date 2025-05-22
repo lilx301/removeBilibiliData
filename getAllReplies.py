@@ -154,7 +154,16 @@ def  getObjWithKeyPath(obj,keypath):
 
 QueryProgress = config.getJsonConfig("query_progress")
 
-def updateProgres(time,page):
+LstCmtTimeForOid = config.getJsonConfig("LstCmtTimeForOid")
+
+def setLastCmtTime(oid,time):
+    LstCmtTimeForOid[str(oid)] = time
+    config.saveJsonConfig(LstCmtTimeForOid,'LstCmtTimeForOid')
+def getLastCmtTime(oid):
+    t = LstCmtTimeForOid.get(oid)
+    return t if t is not None else 0
+
+def updateProgres(time,page,reverse = True):
     if time is not None:
         QueryProgress['LastTimeAt'] = time
     if page is not None:
@@ -188,6 +197,11 @@ def getRepiesInHistory(historyItem,initPagIdx):
     print('getReplies',oid,historyItem.get('part'),bt)
 
     NetRetryMax = 5
+
+# 上次最新时间戳
+    preQueryLatestTime =  getLastCmtTime(oid)
+
+    firstTime = 0
     while 1:
         data  = {
             'type':type,
@@ -232,6 +246,13 @@ def getRepiesInHistory(historyItem,initPagIdx):
 
 
         if list is not None:
+            if  firstTime == 0 :
+                if len(list) == 0:
+                    firstTime = int(time.time())
+                else:
+                    firstTime = list[0].get('ctime')
+                
+
             for itm in list:
                 if itm.get('mid_str') == UID:
                     rList.append(itm)
@@ -244,12 +265,18 @@ def getRepiesInHistory(historyItem,initPagIdx):
         if COUNT >= pageCount:
             print('end')
             break
+
+        # 是否超过上次查询，避免大查询
+        timeLst = list[-1].get("ctime")
+        if timeLst is not None and timeLst < preQueryLatestTime:
+            print("已经超过上次的了查询，skip")
+            break
         
         pageIdx += 1
         time.sleep(3 + random.random() * 2)
 
      
-    
+    setLastCmtTime(oid,firstTime)
     return 1,rList
 
 
@@ -294,7 +321,7 @@ def insertRep(listCmts,itm,title):
     
 
 
-def getAllReplies():
+def getAllReplies(Revers=True):
 
     RepConfig = getCommentsCfg()
     listCmts = RepConfig.get('list')
@@ -330,7 +357,7 @@ def getAllReplies():
                     config.saveJsonConfig(RepConfig,'comments2')
             
 
-            time.sleep(10 + random.random() * 10)
+            time.sleep(3 + random.random() * 3)
 
         
 
@@ -360,9 +387,7 @@ def testGetRep():
 
 
 if __name__ == '__main__':
-
     testGetRep()
-    exit(1)
     getAll()
     updateHistory()
     getAllReplies()
