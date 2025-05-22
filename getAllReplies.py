@@ -209,6 +209,7 @@ def getRepiesInHistory(historyItem,initPagIdx):
             'sort':'0',
             "pn":str(pageIdx)
         }
+        print('query',pageIdx)
         try:
             res = session.get('https://api.bilibili.com/x/v2/reply',params=data,headers=headers,proxies={},timeout=10)
         except Exception as e:
@@ -230,7 +231,7 @@ def getRepiesInHistory(historyItem,initPagIdx):
             jObj = res.json()
         except Exception as e :
             print('获取评论失败....',oid,e)
-            return -1,None
+            return -100,None
 
         
         # print(res.text)
@@ -239,7 +240,7 @@ def getRepiesInHistory(historyItem,initPagIdx):
         
         pageCount = getObjWithKeyPath(jObj,'data.page.count')
         list = getObjWithKeyPath(jObj,'data.replies')
-        print('page', pageIdx,jObj.get("code"),jObj.get("ttl"),jObj.get("message"),pageCount,COUNT)
+        print('    page', pageIdx,jObj.get("code"),jObj.get("ttl"),jObj.get("message"),pageCount,COUNT)
         if jObj.get("code") != 0:
             print('---------------ERROR ??',bt,oid,historyItem.get('view_at'))
             # print(historyItem,jObj)
@@ -342,11 +343,11 @@ def getAllReplies(Revers=True):
         if itm.get('view_at') is not None and itm.get('view_at') > ta:
             pageIdx = 1 if initPage < 0 else initPage
             updateProgres(itm.get('view_at'),None)
-            print('seq',_counter)
+            print(f"seq {_counter} {len(LIST)}")
             r,list = getRepiesInHistory(itm,pageIdx)
             initPage = -1; # 第一次才需要
             if r < 0:
-                print("发生错误，停止")
+                print("发生错误，停止",r)
                 return
             if r > 0:
 
@@ -387,7 +388,7 @@ def testGetRep():
 
 
 if __name__ == '__main__':
-    testGetRep()
+    # testGetRep()
     getAll()
     updateHistory()
     getAllReplies()
