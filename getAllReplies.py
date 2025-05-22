@@ -58,7 +58,7 @@ def getViewHistory(timeSec = 0):
         'ps':"25",
         "business":"article"
     }
-    res = session.get('https://api.bilibili.com/x/web-interface/history/cursor',params=data,headers=headers)
+    res = session.get('https://api.bilibili.com/x/web-interface/history/cursor',params=data,headers=headers,timeout=20)
     res.encoding  = "utf-8"
     # print(res.text)
     try:
@@ -192,6 +192,7 @@ def getRepiesInHistory(historyItem,initPagIdx):
         data  = {
             'type':type,
             'oid':oid,
+            'sort':'0',
             "pn":str(pageIdx)
         }
         try:
@@ -208,6 +209,7 @@ def getRepiesInHistory(historyItem,initPagIdx):
 
             
         res.encoding  = "utf-8"
+
 
         jObj = None
         try:
@@ -231,7 +233,7 @@ def getRepiesInHistory(historyItem,initPagIdx):
 
         if list is not None:
             for itm in list:
-                if itm.get('mid') == UID:
+                if itm.get('mid_str') == UID:
                     rList.append(itm)
         if list is not None and len(list) > 0 :
             COUNT += len(list)
@@ -243,24 +245,60 @@ def getRepiesInHistory(historyItem,initPagIdx):
             print('end')
             break
         
-         
         pageIdx += 1
-        time.sleep(4 + random.random() * 2)
+        time.sleep(3 + random.random() * 2)
 
      
     
     return 1,rList
-    
- 
 
-def getAllReplies():
-    
+
+g_cmt_idx = {}
+
+_CMTCFG = None
+def getCommentsCfg():
+    global _CMTCFG
+    if _CMTCFG is not None:
+        return _CMTCFG
 
     RepConfig = config.getJsonConfig("comments2")
     listCmts = RepConfig.get('list')
     if listCmts is None:
         listCmts = []
         RepConfig['list'] = listCmts
+    
+
+    for itm in listCmts:
+        key = f"RP-{itm.get('oid')}-{itm.get('rpid')}"
+        g_cmt_idx[key] = 1
+
+    _CMTCFG = RepConfig
+    return _CMTCFG
+
+ 
+def insertRep(listCmts,itm,title):
+    key = f"RP-{itm.get('oid')}-{itm.get('rpid')}"
+    if g_cmt_idx.get(key) == 1:
+        print('重复了，skip')
+        return
+
+
+    cmtObj = {
+                    "oid":itm.get("oid_str"),
+                    "rpid":itm.get("rpid_str"),
+                    "ctime":itm.get("ctime"),
+                    "msg":getObjWithKeyPath(itm,'content.message'),
+                    "title":title
+                }
+    listCmts.append(cmtObj)
+    
+
+
+def getAllReplies():
+
+    RepConfig = getCommentsCfg()
+    listCmts = RepConfig.get('list')
+    
 
     ta = QueryProgress.get('LastTimeAt')
     if ta is None:
@@ -288,16 +326,10 @@ def getAllReplies():
                 
                 if len(list) > 0 :
                     for cmt in list:
-                        cmtObj = {
-                            "oid":cmt.get("oid_str"),
-                            "rpid":cmt.get("rpid_str"),
-                            "ctime":cmt.get("ctime"),
-                            "msg":getObjWithKeyPath(cmt,'content.message')
-                        }
-                        listCmts.append(cmtObj)
-                    
+                        insertRep(listCmts,cmt,itm.get('part'))
                     config.saveJsonConfig(RepConfig,'comments2')
             
+
             time.sleep(10 + random.random() * 10)
 
         
@@ -305,9 +337,32 @@ def getAllReplies():
  
     print('get all')
 
-     
+def testGetRep():
+    print("test")
+
+    RepConfig = getCommentsCfg()
+    listCmts = RepConfig.get('list')
+    if listCmts is None:
+        listCmts = []
+        RepConfig['list'] = listCmts
+    his = LIST[0]
+    r,list = getRepiesInHistory(his,1)
+    if r < 0:
+        print("发生错误，停止")
+        return
+    if r > 0:
+        
+        if len(list) > 0 :
+            for cmt in list:
+                insertRep(listCmts,cmt,his.get('part'))
+            config.saveJsonConfig(RepConfig,'comments2')
+    print('EE')
+
+
 if __name__ == '__main__':
 
+    testGetRep()
+    exit(1)
     getAll()
     updateHistory()
     getAllReplies()
