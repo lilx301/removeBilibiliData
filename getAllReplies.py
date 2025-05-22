@@ -209,7 +209,7 @@ def getRepiesInHistory(historyItem,initPagIdx):
             'sort':'0',
             "pn":str(pageIdx)
         }
-        print('query',pageIdx)
+        print('query',pageIdx, historyItem.get('part') if pageIdx % 15 == 14 else "" )
         try:
             res = session.get('https://api.bilibili.com/x/v2/reply',params=data,headers=headers,proxies={},timeout=10)
         except Exception as e:
@@ -340,7 +340,7 @@ def getAllReplies(Revers=True):
     for idx in range(len(LIST) - 1, -1, -1):
         itm = LIST[idx]
         _counter += 1
-        if itm.get('view_at') is not None and itm.get('view_at') > ta:
+        if itm.get('view_at') is not None and itm.get('view_at') >= ta:
             pageIdx = 1 if initPage < 0 else initPage
             updateProgres(itm.get('view_at'),None)
             print(f"seq {_counter} {len(LIST)}")
