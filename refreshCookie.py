@@ -173,7 +173,9 @@ def getCookie():
     Cookie=base64.b64decode(Cookie64.encode('ascii')).decode('utf-8').strip()
     return Cookie
     
-    
+def getUid():
+    uid = re.findall(r'DedeUserID=(\S+)', getCookie())[0].split(";")[0]
+    return uid
 
 
 if __name__ == "__main__":
