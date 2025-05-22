@@ -174,7 +174,7 @@ def updateProgres(time,page,reverse = True):
 
 
 # 获取评论
-def getRepiesInHistory(historyItem,initPagIdx):
+def getRepiesInHistory(historyItem,initPagIdx,seq):
     pageIdx = 1 if initPagIdx is None else  initPagIdx
     COUNT = 0
     rList = []
@@ -194,7 +194,7 @@ def getRepiesInHistory(historyItem,initPagIdx):
 
     oid = f"{historyItem.get('oid')}"
 
-    print('getReplies',oid,historyItem.get('part'),bt)
+    print(f"getReplies[{seq}]",oid,historyItem.get('part'),bt)
 
     NetRetryMax = 5
 
@@ -209,15 +209,15 @@ def getRepiesInHistory(historyItem,initPagIdx):
             'sort':'0',
             "pn":str(pageIdx)
         }
-        print('query',pageIdx, historyItem.get('part') if pageIdx % 15 == 14 else "" )
+        print(f"query[{seq}]",pageIdx, historyItem.get('part') if pageIdx % 15 == 14 else "" )
         try:
             res = session.get('https://api.bilibili.com/x/v2/reply',params=data,headers=headers,proxies={},timeout=10)
         except Exception as e:
             print(e)
-            print('网络失败 ... 5s 后重试')
+            print('网络失败 ... 2s 后重试')
             if NetRetryMax > 0:
                 NetRetryMax = NetRetryMax - 1
-                time.sleep(5 + random.random() * 5)
+                time.sleep(2 + random.random() * 3)
                 continue
             else:
                 return -1,None
@@ -344,7 +344,7 @@ def getAllReplies(Revers=True):
             pageIdx = 1 if initPage < 0 else initPage
             updateProgres(itm.get('view_at'),None)
             print(f"seq {_counter} {len(LIST)}")
-            r,list = getRepiesInHistory(itm,pageIdx)
+            r,list = getRepiesInHistory(itm,pageIdx,seq=_counter)
             initPage = -1; # 第一次才需要
             if r < 0:
                 print("发生错误，停止",r)
