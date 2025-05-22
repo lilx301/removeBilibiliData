@@ -33,15 +33,6 @@ Bilibili移除自己的粉丝
 
 运行
 
-#TODO
-- [x] 刷新cookie，果然事情没这么简单。  
-
-
-[接口这里](https://github.com/SocialSisterYi/bilibili-API-collect/blob/master/docs/login/cookie_refresh.md)
-
-[这里](https://github.com/SocialSisterYi/bilibili-API-collect/issues/524)
-
-
 
 
 # 删除 过去的评论
@@ -52,6 +43,19 @@ https://www.aicu.cc/reply.html?uid=${uid}
 > 不是实时，半年更新一次 😂
 
 接口 https://api.aicu.cc/api/v3/search/getreply?uid=${uid}$&pn=1&ps=100&mode=0&keyword=
+
+
+
+
+#TODO
+- [x] 刷新cookie，果然事情没这么简单。  
+- [ ] 改为sqlite ? 
+
+
+[接口这里](https://github.com/SocialSisterYi/bilibili-API-collect/blob/master/docs/login/cookie_refresh.md)
+
+[这里](https://github.com/SocialSisterYi/bilibili-API-collect/issues/524)
+
 
 
 
