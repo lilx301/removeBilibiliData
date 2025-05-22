@@ -185,13 +185,28 @@ def getRepiesInHistory(historyItem,initPagIdx):
 
     oid = f"{historyItem.get('oid')}"
 
+    print('getReplies',oid,historyItem.get('part'),bt)
+
+    NetRetryMax = 5
     while 1:
         data  = {
             'type':type,
             'oid':oid,
             "pn":str(pageIdx)
         }
-        res = session.get('https://api.bilibili.com/x/v2/reply',params=data,headers=headers)
+        try:
+            res = session.get('https://api.bilibili.com/x/v2/reply',params=data,headers=headers,proxies={},timeout=10)
+        except Exception as e:
+            print(e)
+            print('网络失败 ... 5s 后重试')
+            if NetRetryMax > 0:
+                NetRetryMax = NetRetryMax - 1
+                time.sleep(5 + random.random() * 5)
+                continue
+            else:
+                return -1,None
+
+            
         res.encoding  = "utf-8"
 
         jObj = None
@@ -221,7 +236,7 @@ def getRepiesInHistory(historyItem,initPagIdx):
         if list is not None and len(list) > 0 :
             COUNT += len(list)
         else:
-            print(f"到末尾了，可能一些评论被吞了 {pageCount} -> {COUNT}" )
+            # print(f"到末尾了，可能一些评论被吞了 {pageCount} -> {COUNT}" )
             break
         
         if COUNT >= pageCount:
@@ -255,13 +270,19 @@ def getAllReplies():
 
     initPage = QueryProgress.get('page') if     QueryProgress.get('page') is not None else 1
     print('beginAtPage',initPage)
+    _counter = 0
     for idx in range(len(LIST) - 1, -1, -1):
         itm = LIST[idx]
+        _counter += 1
         if itm.get('view_at') is not None and itm.get('view_at') > ta:
             pageIdx = 1 if initPage < 0 else initPage
             updateProgres(itm.get('view_at'),None)
+            print('seq',_counter)
             r,list = getRepiesInHistory(itm,pageIdx)
             initPage = -1; # 第一次才需要
+            if r < 0:
+                print("发生错误，停止")
+                return
             if r > 0:
 
                 
@@ -277,7 +298,7 @@ def getAllReplies():
                     
                     config.saveJsonConfig(RepConfig,'comments2')
             
-            time.sleep(20 + random.random() * 10)
+            time.sleep(10 + random.random() * 10)
 
         
 
