@@ -7,6 +7,7 @@ sys.path.insert(0, os.path.abspath("pylib"))
 import refreshCookie
 import config
 import random
+import datetime
 
 
 UID = refreshCookie.getUid()
@@ -28,7 +29,6 @@ headers = {
 
     }
 session = refreshCookie.getReqWithCookie()
-
 HistoryObj = config.getJsonConfig('history')
 
 LIST = HistoryObj.get('list') 
@@ -37,15 +37,53 @@ if LIST is None:
     HistoryObj['list'] = LIST
 
 
+# 创建新的，重复的历史记录，只用更新 view_at
+g_history_map = {}
+for hisItm in LIST:
+    oid = hisItm.get('oid')
+    if oid is not None:
+        keyOfOid = str(hisItm.get('oid'))
+        g_history_map[keyOfOid] = hisItm
+
+
 def sortList():
     LIST.sort(key=lambda p: p.get('view_at'),reverse=True)
 
 
 sortList()
 
+beijing_tz = datetime.timezone(datetime.timedelta(hours=8))
+
+def timeStamp2Str(timestamp: int) -> str:
+    if timestamp is None:
+        return ''
+    dt = datetime.datetime.fromtimestamp(timestamp, tz=beijing_tz)
+    return dt.strftime("%Y-%m-%d %H:%M:%S")
+
+
+
+
+
+
+
 def addHistoryItmes(items):
     if items is not None and len(items) > 0:
-        LIST.extend(items)
+        for itm in items:
+            oid = itm.get('oid')
+            if oid is not None:
+                key = str(oid)
+                cached = g_history_map.get(key)
+                if cached is None:
+                    LIST.append(itm)
+                else:
+                    print('已经存在，更新time即可')
+                    view_at = itm.get('view_at')
+                    cached['view_at'] = view_at
+
+
+
+        # LIST.extend(items)
+
 
 def save():
     sortList()
@@ -194,7 +232,7 @@ def getRepiesInHistory(historyItem,initPagIdx,seq):
 
     oid = f"{historyItem.get('oid')}"
 
-    print(f"getReplies[{seq}]",oid,historyItem.get('part'),bt)
+    print(f"getReplies[{seq}]",oid,historyItem.get('part'),bt,timeStamp2Str(historyItem.get("view_at")))
 
     NetRetryMax = 5
 
@@ -209,7 +247,7 @@ def getRepiesInHistory(historyItem,initPagIdx,seq):
             'sort':'0',
             "pn":str(pageIdx)
         }
-        print(f"query[{seq}]",pageIdx, historyItem.get('part') if pageIdx % 15 == 14 else "" )
+        print(f"query[{seq}]",pageIdx, f"{historyItem.get('part')}  {timeStamp2Str(historyItem.get("view_at"))}"  if pageIdx % 15 == 14 else "" )
         try:
             res = session.get('https://api.bilibili.com/x/v2/reply',params=data,headers=headers,proxies={},timeout=10)
         except Exception as e:
