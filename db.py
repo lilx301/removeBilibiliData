@@ -181,7 +181,9 @@ def insertHistoryItem(item):
 
 
     if _checkRowExsit(oidStr,'histories','oid'):
-        # 存在就不写入，尽量减少数据库文件变动
+        # 存在就 更新 时间
+        updateHistoryLatestCommentTime(oidStr,item.get('view_at'))
+
         return
 
     #  oid  bvid title, business view_at newest_cmt_time json          
