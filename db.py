@@ -112,7 +112,7 @@ def setConfig(KEY:str , strV : str = None, intV :int = None):
         raise RuntimeError(f"{KEY} 只能设置 strV 或者  intV 中的一个")
         
     
-    cursor.execute("SELECT * FROM config WHERE key = ?", (KEY,))
+    cursor.execute("SELECT * FROM config WHERE key = ? limit 1", (KEY,))
     row = cursor.fetchone()
     if row is None :
         cursor.execute("INSERT INTO config (key, ivalue,svalue) VALUES (?, ? , ?)", (KEY, intV,strV))
@@ -132,7 +132,7 @@ def setConfig(KEY:str , strV : str = None, intV :int = None):
 
 
 def getConfig(KEY):
-    cursor.execute("SELECT ivalue,svalue  FROM config WHERE key = ?", (KEY,))
+    cursor.execute("SELECT ivalue,svalue  FROM config WHERE key = ? limit 1", (KEY,))
     row = cursor.fetchone()
     if row is None:
         return None
@@ -147,7 +147,7 @@ def getConfig(KEY):
 def _checkRowExsit(key,tableName,keyname):
 
     cursor.execute(f""" 
-                    SELECT db_create_time from "{tableName}" where {keyname} = ?
+                    SELECT db_create_time from "{tableName}" where {keyname} = ? limit 1
                    """,
                    (key,)
                    )
@@ -225,12 +225,11 @@ def insertCommentItem(item):
     
 def updateHistoryLatestCommentTime(oid,timeSec):
     cursor.execute('''
-        UPDATE histories SET newest_cmt_time = ?  WHERE oid = ? and (newest_cmt_time != ? or newest_cmt_time is NULL)
+        UPDATE histories SET newest_cmt_time = ?  WHERE oid = ? and (newest_cmt_time  < ? or newest_cmt_time is NULL)
     ''',
     (timeSec,str(oid),timeSec)
     )
     conn.commit()
-
 
 def updateCommentFlag(oid,rpid,flag):
     if oid is None or rpid is None:
@@ -269,9 +268,16 @@ def getCurrentQueryProgress():
 
 def insertHistoryFromConfig():
     HISTORY = config.getJsonConfig('history')
+    config.saveJsonConfig(HISTORY,'history')
     hisList = HISTORY['list']
+    printD("history count",len(hisList))
+  
     for i in hisList:
         insertHistoryItem(i)
+    
+   
+
+    printD("XX",getHistoryCount())
     
 def insertCommentsFromConfig():
     clist = config.getJsonConfig('comments2')
@@ -284,6 +290,14 @@ def updateHistoryLatestCmtTimeFromConfig():
     
     for oid,time in mp.items():
         updateHistoryLatestCommentTime(oid,time)
+
+
+
+
+def getHistoryCount():
+    cursor.execute('SELECT count(1) as c from histories ')
+    row = cursor.fetchone()
+    return  dict(row).get("c")
 
 def setQueryCtrFromCfg():
     query_progress = config.getJsonConfig('query_progress')
@@ -325,6 +339,8 @@ if __name__ == '__main__':
      setQueryHistoryFromCfg()
 
      printD(getQueryHistoryCtx())
+
+     printD(getHistoryCount())
 
 
      closeDb()
