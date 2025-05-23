@@ -242,13 +242,25 @@ def updateCommentFlag(oid,rpid,flag):
     conn.commit()
 
 
-def updateQueryCtx(time_at,oid,pageIdx):
+def updateQueryCommentCtx(time_at,oid,pageIdx):
     if time_at is not None:
         setConfig('currentQueryTime',intV= time_at)
     if oid is not None:
         setConfig('currentQueryOid',strV= str(oid))
     if pageIdx is not None:
         setConfig('currentQueryPageNo',intV=pageIdx)
+
+
+def getQueryHistoryCtx():
+    return getConfig('QueryHistoryTimeNear'),getConfig('QueryHistoryTimeFar')
+
+
+def updateQueryHistoryCtx(timeNear,timeFar):
+    if timeNear is not None:
+        setConfig('QueryHistoryTimeNear',intV= timeNear)
+    if timeFar is not None:
+        setConfig('QueryHistoryTimeFar',intV= timeFar)
+    
 
 def getCurrentQueryProgress():
     return getConfig('currentQueryTime'),getConfig('currentQueryOid'),getConfig('currentQueryPageNo')
@@ -271,7 +283,6 @@ def updateHistoryLatestCmtTimeFromConfig():
     for oid,time in mp.items():
         updateHistoryLatestCommentTime(oid,time)
 
-
 def setQueryCtrFromCfg():
     query_progress = config.getJsonConfig('query_progress')
     timeAt = query_progress.get('LastTimeAt')
@@ -279,7 +290,20 @@ def setQueryCtrFromCfg():
     oid = query_progress.get('oid')
 
 
-    updateQueryCtx(timeAt,oid,page)
+    updateQueryCommentCtx(timeAt,oid,page)
+
+
+def setQueryHistoryFromCfg():
+    query_progress = config.getJsonConfig('history')
+    nearTime = query_progress.get('LastViewTimeSec')
+    farTime = query_progress.get('QueryTime')
+
+
+    updateQueryHistoryCtx(nearTime,farTime)
+
+
+
+
 
 
  
@@ -295,6 +319,10 @@ if __name__ == '__main__':
      setQueryCtrFromCfg()
 
      printD(getCurrentQueryProgress())
+
+     setQueryHistoryFromCfg()
+
+     printD(getQueryHistoryCtx())
 
 
      closeDb()

@@ -510,11 +510,12 @@ if __name__ == '__main__':
 
 
 
-    importRepliesViaAICUData()
+    # importRepliesViaAICUData()
     # testGetRep()
     # getAll()
     # updateHistory()
-    getAllReplies()
+    # getAllReplies()
+    
 
     
 
