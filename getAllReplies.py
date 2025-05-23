@@ -514,8 +514,8 @@ if __name__ == '__main__':
     # testGetRep()
     # getAll()
     # updateHistory()
-    # getAllReplies()
-    
+    getAllReplies()
+
 
     
 
