@@ -17,6 +17,8 @@ import refreshCookie
 
 import config
 
+from debug import printD
+
 
 
 
@@ -50,6 +52,15 @@ def getReplyList(idx):
 
 GCOUNT=1
 
+def saveItem(item):
+    key=f"RP-{item['dyn']['oid']}-{item['rpid']}" 
+    if commensMap.get(key) is None:
+        commensMap[key] = item.get('message')
+        return 1
+    
+    return 0
+
+
 # 删除一个评论
 def deleteReplyItem(replyItem):
     #
@@ -68,7 +79,7 @@ def deleteReplyItem(replyItem):
 
 
     key=f"RP-{replyItem['dyn']['oid']}-{replyItem['rpid']}" 
-    if commensMap.get(key)is not None:
+    if commensMap.get(key)is not None and ']-[del-' in  commensMap.get(key):
         return -1
     
 
@@ -141,7 +152,12 @@ def startDelete(timeStamp):
         
 
         for item in reversed(list):
-            if item['time'] is not None and item['time'] < timeStamp:
+            t =item.get('time')
+            if t is not None:
+                #  item['time'] < timeStamp:
+                if t > timeStamp:
+                    printD('keep',item.get('message'))
+                    saveItem(item)
                 try:
                     i = deleteReplyItem(item)
                     if i == 1:
@@ -156,6 +172,7 @@ def startDelete(timeStamp):
                     break
         
 
+        saveJson(commensMap,'comments')
         # 存一下
         try :
             if res['data']['cursor']['is_end'] == True:

@@ -307,7 +307,6 @@ def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
             
             if len(filterList) > 0 :
                 callback(filterList,historyItem)
-                printD('my reply detected',len(filterList))
 
         if list is not None and len(list) > 0 :
             COUNT += len(list)
@@ -435,11 +434,32 @@ def testGetRep():
     print('EE')
 
 
+def importRepliesViaAICUData():
+    print("从aicu 也就是 comments.json.enc 读取 评论，载入到 comments2")
+
+    cmtMap = config.getJsonConfig('comments')
+    keys = cmtMap.keys()
+    for key in keys:
+        if not key.startswith("RP-"):
+            continue
+
+        arr = key.split('-')
+        if len(arr ) == 3:
+            oid = arr[1]
+            rpid = arr[2]
+            value = cmtMap.get(key)
+
+
+            
+            print(oid,rpid,value)
+
+
 if __name__ == '__main__':
+    importRepliesViaAICUData()
     # testGetRep()
     # getAll()
     # updateHistory()
-    getAllReplies()
+    # getAllReplies()
 
     
 
