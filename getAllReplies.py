@@ -31,23 +31,25 @@ headers = {
 session = refreshCookie.getReqWithCookie()
 HistoryObj = config.getJsonConfig('history')
 
-LIST = HistoryObj.get('list') 
-if LIST is None:
-    LIST = []
-    HistoryObj['list'] = LIST
+g_LIST_HISTORY = HistoryObj.get('list') 
+if g_LIST_HISTORY is None:
+    g_LIST_HISTORY = []
+    HistoryObj['list'] = g_LIST_HISTORY
 
 
 # 创建新的，重复的历史记录，只用更新 view_at
 g_history_map = {}
-for hisItm in LIST:
-    oid = hisItm.get('oid')
-    if oid is not None:
-        keyOfOid = str(hisItm.get('oid'))
-        g_history_map[keyOfOid] = hisItm
+def initHistoryMap():
+    for hisItm in g_LIST_HISTORY:
+        oid = hisItm.get('oid')
+        if oid is not None:
+            keyOfOid = str(hisItm.get('oid'))
+            g_history_map[keyOfOid] = hisItm
 
+initHistoryMap()
 
 def sortList():
-    LIST.sort(key=lambda p: p.get('view_at'),reverse=True)
+    g_LIST_HISTORY.sort(key=lambda p: p.get('view_at'),reverse=True)
 
 
 sortList()
@@ -75,7 +77,7 @@ def addHistoryItmes(items):
                 key = str(oid)
                 cached = g_history_map.get(key)
                 if cached is None:
-                    LIST.append(itm)
+                    g_LIST_HISTORY.append(itm)
                 else:
                     print('已经存在，更新time即可')
                     view_at = itm.get('view_at')
@@ -126,11 +128,11 @@ def getViewHistory(timeSec = 0):
 
 
 def updateHistory():
-    if len(LIST) == 0:
+    if len(g_LIST_HISTORY) == 0:
         print("本地无数据，不能增量更新，直接 getAll 吧")
         return
     
-    timeMax = LIST[0].get('view_at')
+    timeMax = g_LIST_HISTORY[0].get('view_at')
 
     queryTime = 0
     while 1:
@@ -172,7 +174,7 @@ def getAll():
 
         addHistoryItmes(newList)
         HistoryObj['LastViewTimeSec'] = S
-        HistoryObj['Count'] = len(LIST)
+        HistoryObj['Count'] = len(g_LIST_HISTORY)
         save() 
         time.sleep(2.5 + random.random() * 3)
     
@@ -213,7 +215,7 @@ def updateProgres(time,page,reverse = True):
 
 
 # 获取评论
-def getRepiesInHistory(historyItem,initPagIdx,seq):
+def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
     pageIdx = 1 if initPagIdx is None else  initPagIdx
     COUNT = 0
     rList = []
@@ -296,9 +298,18 @@ def getRepiesInHistory(historyItem,initPagIdx,seq):
                     firstTime = list[0].get('ctime')
                 
 
+            filterList = []
             for itm in list:
                 if itm.get('mid_str') == UID:
                     rList.append(itm)
+                    filterList.append(itm)
+            
+            if len(filterList) > 0 :
+                callback(filterList,historyItem)
+                printD(filterList)
+            else:
+                printD("No My Replies at",pageIdx)
+
         if list is not None and len(list) > 0 :
             COUNT += len(list)
         else:
@@ -363,6 +374,12 @@ def insertRep(listCmts,itm,title):
     listCmts.append(cmtObj)
     
 
+def dealCommentOnHistory(listMyComent,historyItm):
+    RepConfig = getCommentsCfg()
+    listCmts = RepConfig.get('list')
+    for cmt in listMyComent:
+        insertRep(listCmts,cmt,historyItm.get('part'))
+    config.saveJsonConfig(RepConfig,'comments2')
 
 def getAllReplies(Revers=True):
 
@@ -379,25 +396,19 @@ def getAllReplies(Revers=True):
     initPage = QueryProgress.get('page') if     QueryProgress.get('page') is not None else 1
     print('beginAtPage',initPage)
     _counter = 0
-    for idx in range(len(LIST) - 1, -1, -1):
-        itm = LIST[idx]
+    for idx in range(len(g_LIST_HISTORY) - 1, -1, -1):
+        itm = g_LIST_HISTORY[idx]
         _counter += 1
         if itm.get('view_at') is not None and itm.get('view_at') >= ta:
             pageIdx = 1 if initPage < 0 else initPage
             updateProgres(itm.get('view_at'),None)
-            print(f"seq {_counter} {len(LIST)}")
-            r,list = getRepiesInHistory(itm,pageIdx,seq=_counter)
+            print(f"seq {_counter} {len(g_LIST_HISTORY)}")
+            r,_ = getRepiesInHistory(itm,pageIdx,seq=_counter,callback=dealCommentOnHistory)
             initPage = -1; # 第一次才需要
             if r < 0:
                 print("发生错误，停止",r)
                 return
-            if r > 0:
 
-                
-                if len(list) > 0 :
-                    for cmt in list:
-                        insertRep(listCmts,cmt,itm.get('part'))
-                    config.saveJsonConfig(RepConfig,'comments2')
             
 
             time.sleep(3 + random.random() * 3)
@@ -415,24 +426,19 @@ def testGetRep():
     if listCmts is None:
         listCmts = []
         RepConfig['list'] = listCmts
-    his = LIST[0]
-    r,list = getRepiesInHistory(his,1)
+    his = g_LIST_HISTORY[0]
+    r,list = getRepiesInHistory(his,1,seq=1,callback=dealCommentOnHistory)
     if r < 0:
         print("发生错误，停止")
         return
-    if r > 0:
-        
-        if len(list) > 0 :
-            for cmt in list:
-                insertRep(listCmts,cmt,his.get('part'))
-            config.saveJsonConfig(RepConfig,'comments2')
+
     print('EE')
 
 
 if __name__ == '__main__':
     # testGetRep()
-    getAll()
-    updateHistory()
+    # getAll()
+    # updateHistory()
     getAllReplies()
 
     
