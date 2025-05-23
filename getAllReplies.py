@@ -200,12 +200,14 @@ def getLastCmtTime(oid):
     t = LstCmtTimeForOid.get(oid)
     return t if t is not None else 0
 
-def updateProgres(time,page,reverse = True):
+def updateProgres(time,page,reverse = True,oid=None):
     if time is not None:
         QueryProgress['LastTimeAt'] = time
     if page is not None:
         QueryProgress['page'] = page
                 # 保存查询进度
+    if oid is not None:
+        QueryProgress['oid'] = oid
     config.saveJsonConfig(QueryProgress,'query_progress')
 
 
@@ -399,8 +401,9 @@ def getAllReplies(Revers=True):
         itm = g_LIST_HISTORY[idx]
         _counter += 1
         if itm.get('view_at') is not None and itm.get('view_at') >= ta:
-            pageIdx = 1 if initPage < 0 else initPage
-            updateProgres(itm.get('view_at'),None)
+            pageIdx = 1 if initPage < 0 or ta != itm.get('view_at') else initPage
+
+            updateProgres(itm.get('view_at'),None,itm.get("oid"))
             print(f"seq {_counter} {len(g_LIST_HISTORY)}")
             r,_ = getRepiesInHistory(itm,pageIdx,seq=_counter,callback=dealCommentOnHistory)
             initPage = -1; # 第一次才需要

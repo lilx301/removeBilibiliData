@@ -115,11 +115,9 @@ def setConfig(KEY:str , strV : str = None, intV :int = None):
     cursor.execute("SELECT * FROM config WHERE key = ?", (KEY,))
     row = cursor.fetchone()
     if row is None :
-        printD('insert')
         cursor.execute("INSERT INTO config (key, ivalue,svalue) VALUES (?, ? , ?)", (KEY, intV,strV))
         conn.commit()
     else:
-        printD(dict(row),row)
         obj = dict(row)
         if strV is not None:
             if obj.get('svalue') == strV:
@@ -244,6 +242,16 @@ def updateCommentFlag(oid,rpid,flag):
     conn.commit()
 
 
+def updateQueryCtx(time_at,oid,pageIdx):
+    if time_at is not None:
+        setConfig('currentQueryTime',intV= time_at)
+    if oid is not None:
+        setConfig('currentQueryOid',strV= str(oid))
+    if pageIdx is not None:
+        setConfig('currentQueryPageNo',intV=pageIdx)
+
+def getCurrentQueryProgress():
+    return getConfig('currentQueryTime'),getConfig('currentQueryOid'),getConfig('currentQueryPageNo')
 
 def insertHistoryFromConfig():
     HISTORY = config.getJsonConfig('history')
@@ -262,19 +270,33 @@ def updateHistoryLatestCmtTimeFromConfig():
     
     for oid,time in mp.items():
         updateHistoryLatestCommentTime(oid,time)
-    print(list)
 
- 
+
+def setQueryCtrFromCfg():
+    query_progress = config.getJsonConfig('query_progress')
+    timeAt = query_progress.get('LastTimeAt')
+    page = query_progress.get('page')
+    oid = query_progress.get('oid')
+
+
+    updateQueryCtx(timeAt,oid,page)
+
+
  
 
 if __name__ == '__main__':
  
      initDB()
      setConfig("TESTb",None,12)
-     print(getConfig('TESTb'))
      insertHistoryFromConfig()
      insertCommentsFromConfig()
      updateHistoryLatestCmtTimeFromConfig()
+
+     setQueryCtrFromCfg()
+
+     printD(getCurrentQueryProgress())
+
+
      closeDb()
      exit(1)
   
