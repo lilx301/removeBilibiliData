@@ -8,6 +8,7 @@ import refreshCookie
 import config
 import random
 import datetime
+import calendar
 from debug import printD
 
 UID = refreshCookie.getUid()
@@ -65,6 +66,12 @@ def timeStamp2Str(timestamp: int) -> str:
 
 
 
+def ymd2Stamp(date_str: str, fmt: str = "%Y-%m-%d", ms: bool = False) -> int:
+    
+    t = time.strptime(date_str, fmt)
+    timestamp = calendar.timegm(t) - 8 * 3600
+    return int(timestamp * 1000) if ms else int(timestamp)
+    
 
 
 
@@ -355,20 +362,25 @@ def getCommentsCfg():
     return _CMTCFG
 
  
-def insertRep(listCmts,itm,title):
+def insertRep(listCmts,itm,title,extraItm=None):
     key = f"RP-{itm.get('oid')}-{itm.get('rpid')}"
     if g_cmt_idx.get(key) == 1:
         print('重复了，skip')
         return
 
 
-    cmtObj = {
+    cmtObj =  {
                     "oid":itm.get("oid_str"),
                     "rpid":itm.get("rpid_str"),
                     "ctime":itm.get("ctime"),
                     "msg":getObjWithKeyPath(itm,'content.message'),
                     "title":title
                 }
+    
+    if extraItm is not None:
+        cmtObj = { ** cmtObj , ** extraItm}
+
+
     printD(cmtObj.get('msg'))
     listCmts.append(cmtObj)
     
@@ -439,6 +451,8 @@ def importRepliesViaAICUData():
 
     cmtMap = config.getJsonConfig('comments')
     keys = cmtMap.keys()
+    RepConfig = getCommentsCfg()
+    listCmts = RepConfig.get('list')
     for key in keys:
         if not key.startswith("RP-"):
             continue
@@ -448,18 +462,68 @@ def importRepliesViaAICUData():
             oid = arr[1]
             rpid = arr[2]
             value = cmtMap.get(key)
-
-
+            ctime = None
+            dtime = None
+            flag = None
+            msg = value
+            if ']-[del-' in value:
+                parts = re.split(r'  ------\[|\]-\[del-|\]$', value)
+                ctime = ymd2Stamp(parts[1])
+                dtime = ymd2Stamp(parts[2])
+                flag = 1
+                msg = parts[0]
+                
             
-            print(oid,rpid,value)
+
+            #已经删了
+            itm = {
+                "oid": oid,
+                "rpid": rpid,
+                "ctime": ctime,
+                'delTime':dtime,
+                "flag":flag,
+                "msg":msg
+            }
+
+            # {
+            #         "oid":itm.get("oid_str"),
+            #         "rpid":itm.get("rpid_str"),
+            #         "ctime":itm.get("ctime"),
+            #         "msg":getObjWithKeyPath(itm,'content.message'),
+            #         "title":title
+            #     }
+
+            insertRep(listCmts,{"oid":oid,"rpid":rpid},None,itm)
+
+
+    config.saveJsonConfig(RepConfig,'comments2')
+
+    
+
+             
+
 
 
 if __name__ == '__main__':
+    if 0:
+        RepConfig = getCommentsCfg()
+        listCmts = RepConfig.get('list')
+        l2 = []
+        for itm in listCmts:
+            if not itm.get('flag') == 1:
+                l2.append(itm)
+
+        RepConfig['list'] = l2
+        config.saveJsonConfig(RepConfig,'comments2')
+
+
+
+
     importRepliesViaAICUData()
     # testGetRep()
     # getAll()
     # updateHistory()
-    # getAllReplies()
+    getAllReplies()
 
     
 

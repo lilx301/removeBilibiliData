@@ -126,6 +126,7 @@ def deleteReplyItem(replyItem):
             date_str = '--'
 
     
+    # 不要改格式，后面可能会导入
         commensMap[key] = f"{replyItem['message']}  ------[{date_str}]-[del-{datetime.datetime.now().strftime('%Y-%m-%d')}]"
         return 1
 
