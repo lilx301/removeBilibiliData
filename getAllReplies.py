@@ -8,7 +8,7 @@ import refreshCookie
 import config
 import random
 import datetime
-
+from debug import printD
 
 UID = refreshCookie.getUid()
 
@@ -59,6 +59,7 @@ def timeStamp2Str(timestamp: int) -> str:
         return ''
     dt = datetime.datetime.fromtimestamp(timestamp, tz=beijing_tz)
     return dt.strftime("%Y-%m-%d %H:%M:%S")
+
 
 
 
@@ -232,7 +233,8 @@ def getRepiesInHistory(historyItem,initPagIdx,seq):
 
     oid = f"{historyItem.get('oid')}"
 
-    print(f"getReplies[{seq}]",oid,historyItem.get('part'),bt,timeStamp2Str(historyItem.get("view_at")))
+    print(f"getReplies[{seq}]",bt)
+    printD(f"{oid},{historyItem.get('part')}   \n{timeStamp2Str(historyItem.get("view_at"))}")
 
     NetRetryMax = 5
 
@@ -247,7 +249,9 @@ def getRepiesInHistory(historyItem,initPagIdx,seq):
             'sort':'0',
             "pn":str(pageIdx)
         }
-        print(f"query[{seq}]",pageIdx, f"{historyItem.get('part')}  {timeStamp2Str(historyItem.get("view_at"))}"  if pageIdx % 15 == 14 else "" )
+        print(f"query[{seq}]",pageIdx  )
+        if pageIdx % 10 == 9 :
+            printD(f"{historyItem.get('part')}  {timeStamp2Str(historyItem.get("view_at"))}" )
         try:
             res = session.get('https://api.bilibili.com/x/v2/reply',params=data,headers=headers,proxies={},timeout=10)
         except Exception as e:
