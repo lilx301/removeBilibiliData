@@ -370,6 +370,7 @@ def insertRep(listCmts,itm,title):
                     "msg":getObjWithKeyPath(itm,'content.message'),
                     "title":title
                 }
+    printD(cmtObj.get('msg'))
     listCmts.append(cmtObj)
     
 
