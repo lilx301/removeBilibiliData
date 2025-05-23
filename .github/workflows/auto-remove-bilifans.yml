@@ -50,6 +50,7 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt --target=./pylib; fi
         ls -al 
     - name: Delete
+      continue-on-error: true
       run: |
         python3 -u deleteFans.py
         python3 -u deleteReplies.py
