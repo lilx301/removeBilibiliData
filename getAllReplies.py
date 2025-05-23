@@ -215,6 +215,7 @@ def updateProgres(time,page,reverse = True):
 
 
 # 获取评论
+# 由于 同一个视频，观看多次只有一个记录，这里直接暴力查出所有
 def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
     pageIdx = 1 if initPagIdx is None else  initPagIdx
     COUNT = 0
@@ -306,9 +307,7 @@ def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
             
             if len(filterList) > 0 :
                 callback(filterList,historyItem)
-                printD(filterList)
-            else:
-                printD("No My Replies at",pageIdx)
+                printD('my reply detected',len(filterList))
 
         if list is not None and len(list) > 0 :
             COUNT += len(list)
