@@ -6,3 +6,4 @@ cfg.json
 cfgA*
 __pycache__
 *.json
+*.db

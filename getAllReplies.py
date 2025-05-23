@@ -11,6 +11,10 @@ import datetime
 import calendar
 from debug import printD
 
+from tool import timeStamp2Str
+from tool import ymd2Stamp
+
+
 UID = refreshCookie.getUid()
 
 
@@ -55,23 +59,8 @@ def sortList():
 
 sortList()
 
-beijing_tz = datetime.timezone(datetime.timedelta(hours=8))
 
-def timeStamp2Str(timestamp: int) -> str:
-    if timestamp is None:
-        return ''
-    dt = datetime.datetime.fromtimestamp(timestamp, tz=beijing_tz)
-    return dt.strftime("%Y-%m-%d %H:%M:%S")
-
-
-
-
-def ymd2Stamp(date_str: str, fmt: str = "%Y-%m-%d", ms: bool = False) -> int:
-    
-    t = time.strptime(date_str, fmt)
-    timestamp = calendar.timegm(t) - 8 * 3600
-    return int(timestamp * 1000) if ms else int(timestamp)
-    
+ 
 
 
 
@@ -277,7 +266,6 @@ def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
             
         res.encoding  = "utf-8"
 
-
         jObj = None
         try:
             jObj = res.json()
@@ -332,7 +320,7 @@ def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
             break
         
         pageIdx += 1
-        time.sleep(1 + random.random() * 2)
+        time.sleep(1 + random.random() * 1)
 
     if firstTime is not None and firstTime > 0 :
         setLastCmtTime(oid,firstTime)
@@ -365,7 +353,7 @@ def getCommentsCfg():
 def insertRep(listCmts,itm,title,extraItm=None):
     key = f"RP-{itm.get('oid')}-{itm.get('rpid')}"
     if g_cmt_idx.get(key) == 1:
-        print('重复了，skip')
+        # print('重复了，skip')
         return
 
 
@@ -389,7 +377,7 @@ def dealCommentOnHistory(listMyComent,historyItm):
     RepConfig = getCommentsCfg()
     listCmts = RepConfig.get('list')
     for cmt in listMyComent:
-        insertRep(listCmts,cmt,historyItm.get('part'))
+        insertRep(listCmts,cmt,historyItm.get('part'),{'bvid':historyItm.get('bvid')})
     config.saveJsonConfig(RepConfig,'comments2')
 
 def getAllReplies(Revers=True):
