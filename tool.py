@@ -25,3 +25,13 @@ def ymd2Stamp(date_str: str, fmt: str = "%Y-%m-%d", ms: bool = False) -> int:
     t = time.strptime(date_str, fmt)
     timestamp = calendar.timegm(t) - 8 * 3600
     return int(timestamp * 1000) if ms else int(timestamp)
+
+def  getObjWithKeyPath(obj,keypath):
+    arr = keypath.split('.')
+    sitem = obj
+    for name in arr :
+        sitem = sitem.get(name)
+        if sitem is None:
+            return None
+    
+    return sitem

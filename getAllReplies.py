@@ -9,10 +9,12 @@ import config
 import random
 import datetime
 import calendar
+import requests
 from debug import printD
 
 from tool import timeStamp2Str
 from tool import ymd2Stamp
+from tool import getObjWithKeyPath
 import db
 
 
@@ -88,7 +90,7 @@ def updateHistory():
     
     
     near,far = db.getHistoryTimeRange()
-    printD(timeStamp2Str(near))
+    printD(near,timeStamp2Str(near))
     
     queryTime = 0
     while 1:
@@ -104,6 +106,7 @@ def updateHistory():
         if len(newList) > 0 :
             printD(newList[0].get('title'))
             queryTime = view_at
+            printD(newList)
             addHistoryItmes(newList)
             time.sleep(3 + random.random() * 3)
         else:
@@ -137,15 +140,7 @@ def getAllHistories():
 
 
 
-def  getObjWithKeyPath(obj,keypath):
-    arr = keypath.split('.')
-    sitem = obj
-    for name in arr :
-        sitem = sitem.get(name)
-        if sitem is None:
-            return None
-    
-    return sitem
+
 
 
 QueryProgress = config.getJsonConfig("query_progress")
@@ -416,16 +411,68 @@ def importRepliesViaAICUData():
 
     
 
+
+# 获取屏幕列表
+def getReplyListFromAICUAtPage(idx,uid=UID):
+    url = f"https://n.kr7y.workers.dev/https://api.aicu.cc/api/v3/search/getreply?uid={uid}&pn={idx}&ps=300&mode=0&keyword="
+    headers = {
+        'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36"
+    }
+    # 允许出错3次，避免长时间占用 ci
+
+    re = requests.request('get', url, headers=headers,timeout=5)
+    re.encoding = 'utf-8'
+    return re.json()    
              
+
+def getReplyListFromAICU():
+    pg = 1
+    while 1:
+        res = getReplyListFromAICUAtPage(pg)
+        pg += 1
+
+        print(res['data']['cursor'])
+        list = res['data']['replies']
+        
+        if list is  None or len(list) == 0:
+            print('获取列表失败',pg)
+            return
+        print('list',len(list))
+
+        for itm in list:
+            # {'rpid': '268', 'message': 'a message', 'time': 182222, 'rank': 1, 'parent': {}, 'dyn': {'oid': '1104552116', 'type': 1}}
+            itmInsert = {
+                ** itm,
+                "oid":getObjWithKeyPath(itm,"dyn.oid"),
+                "msg":itm.get("message"),
+                "ex1":"AICU",
+                "ctime":itm.get('time')
+            }
+
+            db.insertCommentItem(itmInsert)
+            # {
+        #     "oid": "1111",
+        #     "rpid": "1111",
+        #     "ctime": 1700000000,
+        #     "msg": "xxxxx",
+        #     "title": 't',
+        #     "delTime": 1747584000,
+        #      "bvid": 'bv'
+        #     "flag": 1
+        # },
+
+        time.sleep(1.5)
+
 
 def mainfunc():
 
     # importRepliesViaAICUData()
     # testGetRep()
-    # updateHistory()
+    updateHistory()
     # getAllHistories()
     
-    getAllReplies()
+    # getReplyListFromAICU()
+    # getAllReplies()
 
 if __name__ == '__main__':
     try:

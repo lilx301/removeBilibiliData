@@ -1,14 +1,9 @@
 import sqlite3
-import time
 import sys
 import os
 
 sys.path.insert(0, os.path.abspath("pylib"))
-import refreshCookie
 import config
-import random
-import datetime
-import calendar
 from debug import printD
 import json
 import tool 
@@ -102,7 +97,10 @@ def initDB():
             ctime INTEGER,
             deltime INTEGER,
             flag INTEGER,   
-            json TEXT     ,
+            ex1 TEXT,
+            ex2 TEXT,
+            ex3 TEXT,
+            json TEXT  ,
             db_create_time DATETIME DEFAULT (CURRENT_TIMESTAMP)
         )
         ''')
@@ -186,15 +184,31 @@ def insertHistoryItem(item):
 
     if _checkRowExsit(oidStr,'histories','oid'):
         # 存在就 更新 时间
-        updateHistoryLatestCommentTime(oidStr,item.get('view_at'))
+        printD("updateViewAt ",oidStr,item.get('view_at'))
+        updateHistoryViewTime(oidStr,item.get('view_at'))
 
         return
-
+    
+    
     #  oid  bvid title, business view_at newest_cmt_time json          
     cursor.execute('''
         INSERT OR IGNORE INTO histories (oid , bvid , title, business ,view_at ,newest_cmt_time , json) VALUES (?,?,?,?,?,?,?)
     ''',(oidStr,item.get('bvid'),item.get('part'),item.get('business'),item.get('view_at'),item.get('newest_cmt_time'),json.dumps(item, indent=4,ensure_ascii=False),))
     
+    conn.commit()
+
+def updateEx1(item):
+    oid = item.get('oid')
+    rpid = item.get('rpid')
+    if oid is None or rpid is None:
+        print("没有oid rpid？")
+        return
+
+
+
+    cursor.execute('''
+        UPDATE comments SET ex1 = 'aicu'  WHERE oid = ?  and rpid = ? and (ex1 != 'aicu' or ex1 is NULL)
+                   ''',(oid,rpid))
     conn.commit()
 
 def insertCommentItem(item):
@@ -222,9 +236,19 @@ def insertCommentItem(item):
     
       # key oid    , bvid  , title  , rpid      , msg     , ctime  , deltime  , flag  ,   json     
     cursor.execute('''
-        INSERT OR IGNORE INTO comments (key, oid    , bvid  , title  , rpid      , msg     , ctime  , deltime  , flag  ,   json  ) VALUES (?,?,?,?,?,?,?,?,?,?)
-    ''',(key,oidStr,item.get('bvid'),item.get('title'),rpidStr,item.get('msg'),item.get('ctime'),item.get('delTime'),item.get('flag'),json.dumps(item, indent=4,ensure_ascii=False),))
+        INSERT OR IGNORE INTO comments (key, oid    , bvid  , title  , rpid      , msg     , ctime  , deltime  , flag  , ex1 ,ex2,ex3,  json  ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
+    ''',(key,oidStr,item.get('bvid'),item.get('title'),rpidStr,item.get('msg'),item.get('ctime'),item.get('delTime'),item.get('flag'),
+         item.get('ex1'),item.get('ex2'),item.get('ex3'),
+         json.dumps(item, indent=4,ensure_ascii=False)))
     
+    conn.commit()
+
+def updateHistoryViewTime(oid,viewat):
+    cursor.execute('''
+        UPDATE histories SET view_at = ?  WHERE oid = ? and (view_at  < ? or view_at is NULL)
+    ''',
+    (viewat,str(oid),viewat)
+    )
     conn.commit()
     
 def updateHistoryLatestCommentTime(oid,timeSec):
@@ -275,7 +299,7 @@ def getUnqueryHistory(CUNT=15):
 
     printD(tool.timeStamp2Str(viewAt))
 
-    cursor.execute('SELECT * from "histories" where view_at >= ? and (newest_cmt_time is   null or newest_cmt_time == 0)   order by view_at desc   limit ?',(viewAt,CUNT) )
+    cursor.execute('SELECT * from "histories" where view_at >= ? and (newest_cmt_time is   null or newest_cmt_time = 0)   order by view_at desc   limit ?',(viewAt,CUNT) )
 
     rows = cursor.fetchall()
     r = []
@@ -285,6 +309,19 @@ def getUnqueryHistory(CUNT=15):
         r.append(mp)
     return r 
 
+
+
+def getUndeletedComments():
+    cursor.execute('SELECT * from "comments" where flag is null or flag = 0 limit 50 order by ')
+    rows = cursor.fetchall()
+    if rows is not None:
+        r = []
+        for row in rows:
+            r.append(dict(row))
+        
+        return r 
+        
+    return []
 def insertHistoryFromConfig():
     HISTORY = config.getJsonConfig('history')
     config.saveJsonConfig(HISTORY,'history')
@@ -379,12 +416,45 @@ def encDb():
         with open("data/ebilidata.edb",'wb') as df:
             df.write(decData)
 
+
+
+def getComments(all=False):
+    cursor.execute(f"select msg ,title,ctime from comments  { '' if all else  'where flag is NULL or flag = 0' } ")
+    clst  = cursor.fetchall()
+    arr = []
+    for itm in clst:
+        mp = dict(itm)
+        arr.append(mp)
+    return arr
+
  
- 
+
+def exportComent(all = True):
+    cursor.execute(f"select msg ,title,ctime from comments  { '' if all else  'where flag is NULL or flag = 0' } ")
+    clst  = cursor.fetchall()
+    arr = []
+    for itm in clst:
+        mp = dict(itm)
+        mp['ctime'] = tool.timeStamp2Str(mp.get('ctime'))
+        arr.append(mp)
+    
+    jsonstr = json.dumps({"list":arr},indent=4,ensure_ascii=False)
+    with open('data/export.json','w') as f:
+        f.write(jsonstr)
+
+def test():
+    cursor.execute('delete from comments where ex1 = "AICU"')
+    conn.commit()
+
+
 
 if __name__ == '__main__':
 
+    
+
      initDB()
+     exportComent(True)
+
     #  printD(getUnqueryHistory())
     #  setConfig("TESTb",None,12)
      insertHistoryFromConfig()
@@ -402,11 +472,18 @@ if __name__ == '__main__':
      printD(getHistoryCount())
 
 
-     printD(getUnqueryHistory()[0],tool.timeStamp2Str(getUnqueryHistory()[0].get("view_at")))
+     printD(getUnqueryHistory())
+
+
+  
+
+     test()
 
 
 
 
+     cursor.execute("vacuum;")
+     conn.commit()
      closeDb()
      exit(1)
   

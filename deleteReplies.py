@@ -18,7 +18,7 @@ import refreshCookie
 import config
 
 from debug import printD
-
+import db
 
 
 
@@ -36,18 +36,6 @@ uid = re.findall(r'DedeUserID=(\S+)', Cookie)[0].split(";")[0]
 #print
 print("print Start")
 
-
-# 获取屏幕列表
-def getReplyList(idx):
-    url = f"https://n.kr7y.workers.dev/https://api.aicu.cc/api/v3/search/getreply?uid={uid}&pn={idx}&ps=300&mode=0&keyword="
-    headers = {
-        'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36"
-    }
-    # 允许出错3次，避免长时间占用 ci
-
-    re = requests.request('get', url, headers=headers,timeout=5)
-
-    return re.json()    
 
 
 GCOUNT=1
@@ -141,7 +129,6 @@ def startDelete(timeStamp):
     PAGE=1
     while STOP == 0:
         
-        print("Page",PAGE)
         res = getReplyList(PAGE)
         PAGE += 1
 
@@ -200,8 +187,20 @@ commensMap = config.getJsonConfig('comments')
 
  
 if __name__ == '__main__':
-    nowSecStamp = int(time.time())
+    
+    try:
+        db.initDB()
+        nowSecStamp = int(time.time())
     # 删除时间超过7天的评论
-    print('删除时间超过7天的评论')
-    startDelete(nowSecStamp - 24 * 3600 * 7)
+        print('删除时间超过7天的评论')
+        startDelete(nowSecStamp - 24 * 3600 * 7)
+    except KeyboardInterrupt as e:
+        printD(e)
+    else:
+        print("EEE")
+    finally:
+        printD("XX")
+        db.closeDb()
+
+   
     
