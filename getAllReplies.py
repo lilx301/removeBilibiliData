@@ -446,7 +446,8 @@ def getReplyListFromAICU():
                 "oid":getObjWithKeyPath(itm,"dyn.oid"),
                 "msg":itm.get("message"),
                 "ex1":"AICU",
-                "ctime":itm.get('time')
+                "ctime":itm.get('time'),
+                "ex2":getObjWithKeyPath(itm,"dyn.type"),
             }
 
             db.insertCommentItem(itmInsert)
@@ -468,10 +469,10 @@ def mainfunc():
 
     # importRepliesViaAICUData()
     # testGetRep()
-    updateHistory()
+    # updateHistory()
     # getAllHistories()
     
-    # getReplyListFromAICU()
+    getReplyListFromAICU()
     # getAllReplies()
 
 if __name__ == '__main__':

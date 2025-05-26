@@ -184,7 +184,6 @@ def insertHistoryItem(item):
 
     if _checkRowExsit(oidStr,'histories','oid'):
         # 存在就 更新 时间
-        printD("updateViewAt ",oidStr,item.get('view_at'))
         updateHistoryViewTime(oidStr,item.get('view_at'))
 
         return
@@ -311,8 +310,8 @@ def getUnqueryHistory(CUNT=15):
 
 
 
-def getUndeletedComments():
-    cursor.execute('SELECT * from "comments" where flag is null or flag = 0 limit 50 order by ')
+def getUndeletedComments(timeStamp,COUNT = 100):
+    cursor.execute('SELECT * from "comments" where ( flag is null or flag = 0  ) and ctime < ? order by ctime asc limit ? ', (timeStamp, COUNT))
     rows = cursor.fetchall()
     if rows is not None:
         r = []
@@ -443,7 +442,7 @@ def exportComent(all = True):
         f.write(jsonstr)
 
 def test():
-    cursor.execute('delete from comments where ex1 = "AICU"')
+
     conn.commit()
 
 
@@ -474,6 +473,7 @@ if __name__ == '__main__':
 
      printD(getUnqueryHistory())
 
+     printD('XBd',getUndeletedComments()[1])
 
   
 
