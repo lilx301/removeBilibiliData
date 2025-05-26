@@ -94,6 +94,7 @@ def deleteReplyItem(replyItem):
     if re['code'] == 0:
         global GCOUNT
         print("删除评论 成功" , GCOUNT)
+        db.updateCommentFlag(str( replyItem['oid']),str(replyItem.get("rpid")),1)
         GCOUNT = GCOUNT + 1
 
         date_str = ''
