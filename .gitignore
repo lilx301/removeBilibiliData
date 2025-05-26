@@ -7,3 +7,4 @@ cfgA*
 __pycache__
 *.json
 *.db
+**/bilidata.*

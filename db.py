@@ -12,6 +12,7 @@ import calendar
 from debug import printD
 import json
 import tool 
+from aes import AEScoder 
 
 conn = None
 cursor = None
@@ -20,12 +21,14 @@ def closeDb():
     if conn is not None:
         cursor.close()
         conn.close()
-        
+    encDb()
+    
 
 
 def initDB():
     global conn
     global cursor
+    decDb()
     if conn == None:
         # 连接数据库（如果不存在会自动创建）
         conn = sqlite3.connect('data/bilidata.db')
@@ -268,9 +271,11 @@ def getCurrentQueryProgress():
     return getConfig('currentQueryTime'),getConfig('currentQueryOid'),getConfig('currentQueryPageNo')
 
 def getUnqueryHistory(CUNT=15):
-    ct,oid,viewAt = getCurrentQueryProgress()
+    viewAt,oid,pageNo = getCurrentQueryProgress()
 
-    cursor.execute('SELECT * from "histories" where view_at >= ? and (newest_cmt_time is   null or newest_cmt_time == 0)   order by view_at desc  limit ?',(viewAt,CUNT) )
+    printD(tool.timeStamp2Str(viewAt))
+
+    cursor.execute('SELECT * from "histories" where view_at >= ? and (newest_cmt_time is   null or newest_cmt_time == 0)   order by view_at desc   limit ?',(viewAt,CUNT) )
 
     rows = cursor.fetchall()
     r = []
@@ -313,6 +318,11 @@ def getHistoryCount():
     row = cursor.fetchone()
     return  dict(row).get("c")
 
+def getUnQueryHistoryCount():
+    cursor.execute('SELECT count(1) as c from histories where newest_cmt_time == 0 or newest_cmt_time is NULL ')
+    row = cursor.fetchone()
+    return  dict(row).get("c")
+
 
 def getHistoryTimeRange():
     cursor.execute(f"SELECT view_at from histories order by view_at desc limit 1")
@@ -350,10 +360,30 @@ def setQueryHistoryFromCfg():
 
 
 
+def decDb():
+    with open("data/ebilidata.edb",'rb') as f:
+        dbdata = f.read()
+        print('dbSize',len(dbdata))
+        ENC =AEScoder(os.getenv('CFGKEY'))
+        decData = ENC.decryptBin(dbdata)
+        with open("data/bilidata.db",'wb') as df:
+            df.write(decData)
+
+
+def encDb():
+    with open("data/bilidata.db",'rb') as f:
+        dbdata = f.read()
+        print('dbSize',len(dbdata))
+        ENC =AEScoder(os.getenv('CFGKEY'))
+        decData = ENC.encryptBin(dbdata)
+        with open("data/ebilidata.edb",'wb') as df:
+            df.write(decData)
+
+ 
  
 
 if __name__ == '__main__':
- 
+
      initDB()
     #  printD(getUnqueryHistory())
     #  setConfig("TESTb",None,12)
@@ -371,6 +401,8 @@ if __name__ == '__main__':
 
      printD(getHistoryCount())
 
+
+     printD(getUnqueryHistory()[0],tool.timeStamp2Str(getUnqueryHistory()[0].get("view_at")))
 
 
 

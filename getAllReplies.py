@@ -102,6 +102,7 @@ def updateHistory():
         
         print('新的历史记录',len(newList))
         if len(newList) > 0 :
+            printD(newList[0].get('title'))
             queryTime = view_at
             addHistoryItmes(newList)
             time.sleep(3 + random.random() * 3)
@@ -152,21 +153,13 @@ QueryProgress = config.getJsonConfig("query_progress")
 LstCmtTimeForOid = config.getJsonConfig("LstCmtTimeForOid")
 
 def setLastCmtTime(oid,time):
-    LstCmtTimeForOid[str(oid)] = time
-    config.saveJsonConfig(LstCmtTimeForOid,'LstCmtTimeForOid')
+    db.updateHistoryLatestCommentTime(oid,time)
 def getLastCmtTime(oid):
     t = LstCmtTimeForOid.get(oid)
     return t if t is not None else 0
 
 def updateProgres(time,page,reverse = True,oid=None):
-    if time is not None:
-        QueryProgress['LastTimeAt'] = time
-    if page is not None:
-        QueryProgress['page'] = page
-                # 保存查询进度
-    if oid is not None:
-        QueryProgress['oid'] = oid
-    config.saveJsonConfig(QueryProgress,'query_progress')
+    db.updateQueryCommentCtx(time,oid,page)
 
 
 
@@ -236,13 +229,17 @@ def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
         
         # print(res.text)
 
-        updateProgres(None,pageIdx)
+        updateProgres(None,page=pageIdx)
         
         pageCount = getObjWithKeyPath(jObj,'data.page.count')
         list = getObjWithKeyPath(jObj,'data.replies')
         print('    page', pageIdx,jObj.get("code"),jObj.get("ttl"),jObj.get("message"),pageCount,COUNT)
         if jObj.get("code") != 0:
             print('---------------ERROR ??',bt,oid,historyItem.get('view_at'))
+            db.updateHistoryLatestCommentTime(oid,1)
+
+            return 0, None,
+
             # print(historyItem,jObj)
 
 
@@ -317,6 +314,7 @@ def getAllReplies(Revers=True):
  
 
     ta,oid, initPage= db.getCurrentQueryProgress()
+    printD('BEGIN',timeStamp2Str(ta),oid,initPage)
     if ta is None:
         ta = 0
     
@@ -325,14 +323,14 @@ def getAllReplies(Revers=True):
     initPage = 1 if  initPage is  None else initPage
     print('beginAtPage',initPage)
     _counter = 0
-    historyCount = db.getHistoryCount()
+    historyCount = db.getUnQueryHistoryCount()
     while 1:
         hisList = db.getUnqueryHistory()
         if hisList is None or len(hisList) == 0:
             break
         for  itm in hisList:
             _counter += 1
-            if itm.get('view_at') is not None and itm.get('view_at') >= ta:
+            if itm.get('view_at') is not None and itm.get('view_at') >= ta or 1:
                 pageIdx = 1 if initPage < 0 or ta != itm.get('view_at') else initPage
 
                 updateProgres(itm.get('view_at'),None,itm.get("oid"))
@@ -342,10 +340,10 @@ def getAllReplies(Revers=True):
                 if r < 0:
                     print("发生错误，停止",r)
                     return
+ 
+                time.sleep(1 + random.random() )
 
-                
-
-                time.sleep(3 + random.random() * 3)
+        
 
         
 
@@ -421,32 +419,24 @@ def importRepliesViaAICUData():
              
 
 def mainfunc():
-    if 0:
-        RepConfig = getCommentsCfg()
-        listCmts = RepConfig.get('list')
-        l2 = []
-        for itm in listCmts:
-            if not itm.get('flag') == 1:
-                l2.append(itm)
 
-        RepConfig['list'] = l2
-        config.saveJsonConfig(RepConfig,'comments2')
-
-
-
-
-    importRepliesViaAICUData()
+    # importRepliesViaAICUData()
     # testGetRep()
-    updateHistory()
-    getAllHistories()
+    # updateHistory()
+    # getAllHistories()
     
-    # getAllReplies()
+    getAllReplies()
 
 if __name__ == '__main__':
     try:
         db.initDB()
         mainfunc()
+    except KeyboardInterrupt as e:
+        printD(e)
+    else:
+        print("EEE")
     finally:
+        printD("XX")
         db.closeDb()
 
 
