@@ -91,10 +91,13 @@ def deleteReplyItem(replyItem):
     # 12009：评论主体的type不合法
     # 12022：已经被删除了 
     #  ...
+    printD(re)
+    flag = 1 if re.get('code') == 0 else re.get('code')
+    db.updateCommentFlag(str( replyItem['oid']),str(replyItem.get("rpid")),flag)
     if re['code'] == 0:
         global GCOUNT
         print("删除评论 成功" , GCOUNT)
-        db.updateCommentFlag(str( replyItem['oid']),str(replyItem.get("rpid")),1)
+        
         GCOUNT = GCOUNT + 1
 
         date_str = ''

@@ -106,7 +106,6 @@ def updateHistory():
         if len(newList) > 0 :
             printD(newList[0].get('title'))
             queryTime = view_at
-            printD(newList)
             addHistoryItmes(newList)
             time.sleep(3 + random.random() * 3)
         else:
@@ -352,7 +351,7 @@ def getAllReplies(Revers=True):
 def testGetRep():
     print("test")
  
-    his = db.getUnqueryHistory()[1]
+    his = db.getUnqueryHistory()[0]
     printD(his)
     r,list = getRepiesInHistory(his,1,seq=1,callback=dealCommentOnHistory)
     if r < 0:
@@ -469,11 +468,11 @@ def mainfunc():
 
     # importRepliesViaAICUData()
     # testGetRep()
-    # updateHistory()
-    # getAllHistories()
+    updateHistory()
+    getAllHistories()
     
-    getReplyListFromAICU()
-    # getAllReplies()
+    # getReplyListFromAICU()
+    getAllReplies()
 
 if __name__ == '__main__':
     try:

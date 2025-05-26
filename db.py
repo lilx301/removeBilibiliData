@@ -196,19 +196,7 @@ def insertHistoryItem(item):
     
     conn.commit()
 
-def updateEx1(item):
-    oid = item.get('oid')
-    rpid = item.get('rpid')
-    if oid is None or rpid is None:
-        print("没有oid rpid？")
-        return
-
-
-
-    cursor.execute('''
-        UPDATE comments SET ex1 = 'aicu'  WHERE oid = ?  and rpid = ? and (ex1 != 'aicu' or ex1 is NULL)
-                   ''',(oid,rpid))
-    conn.commit()
+ 
 
 def insertCommentItem(item):
       # {
