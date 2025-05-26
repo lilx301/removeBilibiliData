@@ -275,7 +275,9 @@ def getUnqueryHistory(CUNT=15):
     rows = cursor.fetchall()
     r = []
     for itm in rows:
-        r.append(dict(itm))
+        mp = dict(itm)
+        del mp['json']
+        r.append(mp)
     return r 
 
 def insertHistoryFromConfig():
@@ -312,10 +314,19 @@ def getHistoryCount():
     return  dict(row).get("c")
 
 
-def getFarestHistoryTime():
-    cursor.execute('SELECT view_at from histories order by view_at  limit 1')
+def getHistoryTimeRange():
+    cursor.execute(f"SELECT view_at from histories order by view_at desc limit 1")
     row = cursor.fetchone()
-    return  dict(row).get("view_at")
+    near = None
+    if row is not None:
+        near = dict(row).get("view_at")
+
+    cursor.execute(f"SELECT view_at from histories order by view_at asc  limit 1")
+    row = cursor.fetchone()
+    far = None
+    if row is not None:
+        far = dict(row).get("view_at")
+    return near,far
 
 def setQueryCtrFromCfg():
     query_progress = config.getJsonConfig('query_progress')
@@ -346,20 +357,19 @@ if __name__ == '__main__':
      initDB()
     #  printD(getUnqueryHistory())
     #  setConfig("TESTb",None,12)
-    #  insertHistoryFromConfig()
-    #  insertCommentsFromConfig()
-    #  updateHistoryLatestCmtTimeFromConfig()
+     insertHistoryFromConfig()
+     insertCommentsFromConfig()
+     updateHistoryLatestCmtTimeFromConfig()
 
-    #  setQueryCtrFromCfg()
+     setQueryCtrFromCfg()
 
     #  printD(getCurrentQueryProgress())
 
-    #  setQueryHistoryFromCfg()
+     setQueryHistoryFromCfg()
 
-    #  printD(getQueryHistoryCtx())
+     printD(getQueryHistoryCtx())
 
      printD(getHistoryCount())
-     printD(tool.timeStamp2Str(getFarestHistoryTime()))
 
 
 

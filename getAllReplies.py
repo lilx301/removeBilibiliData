@@ -45,17 +45,8 @@ def addHistoryItmes(items):
         for itm in items:
             oid = itm.get('oid')
             if oid is not None:
-                key = str(oid)
                 db.insertHistoryItem(itm)
-                 
-
-
-
-        # LIST.extend(items)
-
-
-def save():
-    printD('skip')
+ 
 
 def getViewHistory(timeSec = 0):
     data  = {
@@ -65,7 +56,6 @@ def getViewHistory(timeSec = 0):
     }
     res = session.get('https://api.bilibili.com/x/web-interface/history/cursor',params=data,headers=headers,timeout=20)
     res.encoding  = "utf-8"
-    # print(res.text)
     try:
         resObj = res.json()
         if resObj is None:
@@ -92,20 +82,20 @@ def getViewHistory(timeSec = 0):
 
 
 def updateHistory():
-    if db.hisgetHistoryCount() == 0:
+    if db.getHistoryCount() == 0:
         print("本地无数据，不能增量更新，直接 getAll 吧")
         return
     
     
-
-    queryTime = db.getFarestHistoryTime()
+    near,far = db.getHistoryTimeRange()
+    printD(timeStamp2Str(near))
     
     while 1:
-       view_at,list =  getViewHistory(queryTime)
+       view_at,list =  getViewHistory(near)
        if view_at > 0 and list is not None:
         newList = []
         for itm in list:
-            if itm.get('view_at') is not None and itm.get('view_at') > timeMax:
+            if itm.get('view_at') is not None and itm.get('view_at') > near:
                    newList.append(itm)
            
         
@@ -113,7 +103,6 @@ def updateHistory():
         if len(newList) > 0 :
             queryTime = view_at
             addHistoryItmes(newList)
-            save()
             time.sleep(3 + random.random() * 3)
         else:
             break
@@ -124,26 +113,25 @@ def updateHistory():
 
 
 # 全量查询，请先删掉 history.json.enc ,往后面查询
-def getAll():
+def getAllHistories():
 
-    S = 0
-    lastViewTimeSec = HistoryObj.get("LastViewTimeSec")
+    S = 0    
+    xx,lastViewTimeSec = db.getHistoryTimeRange()
+    printD(timeStamp2Str(xx))
+    printD(timeStamp2Str(lastViewTimeSec))
+
     if  lastViewTimeSec is not None:
         S = lastViewTimeSec
     FLG = 1
     while FLG:
         S,newList =  getViewHistory(S)
-        print(S)
+        print(timeStamp2Str(S))
         if S < 0:
             break
 
         addHistoryItmes(newList)
-        HistoryObj['LastViewTimeSec'] = S
-        HistoryObj['Count'] = len(g_LIST_HISTORY)
-        save() 
-        time.sleep(2.5 + random.random() * 3)
+        time.sleep(1 + random.random() )
     
-    save()
 
 
 
@@ -336,38 +324,42 @@ def getAllReplies(Revers=True):
     initPage = 1 if  initPage is  None else initPage
     print('beginAtPage',initPage)
     _counter = 0
-    for idx in range(len(g_LIST_HISTORY) - 1, -1, -1):
-        itm = g_LIST_HISTORY[idx]
-        _counter += 1
-        if itm.get('view_at') is not None and itm.get('view_at') >= ta:
-            pageIdx = 1 if initPage < 0 or ta != itm.get('view_at') else initPage
+    historyCount = db.getHistoryCount()
+    while 1:
+        hisList = db.getUnqueryHistory()
+        if hisList is None or len(hisList) == 0:
+            break
+        for  itm in hisList:
+            _counter += 1
+            if itm.get('view_at') is not None and itm.get('view_at') >= ta:
+                pageIdx = 1 if initPage < 0 or ta != itm.get('view_at') else initPage
 
-            updateProgres(itm.get('view_at'),None,itm.get("oid"))
-            print(f"seq {_counter} {len(g_LIST_HISTORY)}")
-            r,_ = getRepiesInHistory(itm,pageIdx,seq=_counter,callback=dealCommentOnHistory)
-            initPage = -1; # 第一次才需要
-            if r < 0:
-                print("发生错误，停止",r)
-                return
+                updateProgres(itm.get('view_at'),None,itm.get("oid"))
+                print(f"seq {_counter} {historyCount}")
+                r,_ = getRepiesInHistory(itm,pageIdx,seq=_counter,callback=dealCommentOnHistory)
+                initPage = -1; # 第一次才需要
+                if r < 0:
+                    print("发生错误，停止",r)
+                    return
 
-            
+                
 
-            time.sleep(3 + random.random() * 3)
+                time.sleep(3 + random.random() * 3)
 
         
+
+
+
+    
 
  
     print('get all')
 
 def testGetRep():
     print("test")
-
-    RepConfig = getCommentsCfg()
-    listCmts = RepConfig.get('list')
-    if listCmts is None:
-        listCmts = []
-        RepConfig['list'] = listCmts
-    his = g_LIST_HISTORY[0]
+ 
+    his = db.getUnqueryHistory()[1]
+    printD(his)
     r,list = getRepiesInHistory(his,1,seq=1,callback=dealCommentOnHistory)
     if r < 0:
         print("发生错误，停止")
@@ -381,8 +373,6 @@ def importRepliesViaAICUData():
 
     cmtMap = config.getJsonConfig('comments')
     keys = cmtMap.keys()
-    RepConfig = getCommentsCfg()
-    listCmts = RepConfig.get('list')
     for key in keys:
         if not key.startswith("RP-"):
             continue
@@ -423,10 +413,7 @@ def importRepliesViaAICUData():
             #         "title":title
             #     }
 
-            insertRep(listCmts,{"oid":oid,"rpid":rpid},None,itm)
-
-
-    config.saveJsonConfig(RepConfig,'comments2')
+            insertRep({"oid":oid,"rpid":rpid},None,itm)
 
     
 
@@ -447,11 +434,12 @@ def mainfunc():
 
 
 
-    # importRepliesViaAICUData()
+    importRepliesViaAICUData()
     # testGetRep()
-    # getAll()
-    # updateHistory()
-    getAllReplies()
+    updateHistory()
+    getAllHistories()
+    
+    # getAllReplies()
 
 if __name__ == '__main__':
     try:
