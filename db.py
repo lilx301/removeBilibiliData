@@ -144,6 +144,7 @@ def getConfig(KEY):
 
 
 
+
 def _checkRowExsit(key,tableName,keyname):
 
     cursor.execute(f""" 
@@ -266,6 +267,17 @@ def updateQueryHistoryCtx(timeNear,timeFar):
 def getCurrentQueryProgress():
     return getConfig('currentQueryTime'),getConfig('currentQueryOid'),getConfig('currentQueryPageNo')
 
+def getUnqueryHistory(CUNT=15):
+    ct,oid,viewAt = getCurrentQueryProgress()
+
+    cursor.execute('SELECT * from "histories" where view_at >= ? and (newest_cmt_time is   null or newest_cmt_time == 0)   order by view_at desc  limit ?',(viewAt,CUNT) )
+
+    rows = cursor.fetchall()
+    r = []
+    for itm in rows:
+        r.append(dict(itm))
+    return r 
+
 def insertHistoryFromConfig():
     HISTORY = config.getJsonConfig('history')
     config.saveJsonConfig(HISTORY,'history')
@@ -299,6 +311,12 @@ def getHistoryCount():
     row = cursor.fetchone()
     return  dict(row).get("c")
 
+
+def getFarestHistoryTime():
+    cursor.execute('SELECT view_at from histories order by view_at  limit 1')
+    row = cursor.fetchone()
+    return  dict(row).get("view_at")
+
 def setQueryCtrFromCfg():
     query_progress = config.getJsonConfig('query_progress')
     timeAt = query_progress.get('LastTimeAt')
@@ -321,26 +339,30 @@ def setQueryHistoryFromCfg():
 
 
 
-
  
 
 if __name__ == '__main__':
  
      initDB()
-     setConfig("TESTb",None,12)
-     insertHistoryFromConfig()
-     insertCommentsFromConfig()
-     updateHistoryLatestCmtTimeFromConfig()
+    #  printD(getUnqueryHistory())
+    #  setConfig("TESTb",None,12)
+    #  insertHistoryFromConfig()
+    #  insertCommentsFromConfig()
+    #  updateHistoryLatestCmtTimeFromConfig()
 
-     setQueryCtrFromCfg()
+    #  setQueryCtrFromCfg()
 
-     printD(getCurrentQueryProgress())
+    #  printD(getCurrentQueryProgress())
 
-     setQueryHistoryFromCfg()
+    #  setQueryHistoryFromCfg()
 
-     printD(getQueryHistoryCtx())
+    #  printD(getQueryHistoryCtx())
 
      printD(getHistoryCount())
+     printD(tool.timeStamp2Str(getFarestHistoryTime()))
+
+
+
 
 
      closeDb()

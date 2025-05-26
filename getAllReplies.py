@@ -13,6 +13,7 @@ from debug import printD
 
 from tool import timeStamp2Str
 from tool import ymd2Stamp
+import db
 
 
 UID = refreshCookie.getUid()
@@ -34,33 +35,7 @@ headers = {
 
     }
 session = refreshCookie.getReqWithCookie()
-HistoryObj = config.getJsonConfig('history')
 
-g_LIST_HISTORY = HistoryObj.get('list') 
-if g_LIST_HISTORY is None:
-    g_LIST_HISTORY = []
-    HistoryObj['list'] = g_LIST_HISTORY
-
-
-# 创建新的，重复的历史记录，只用更新 view_at
-g_history_map = {}
-def initHistoryMap():
-    for hisItm in g_LIST_HISTORY:
-        oid = hisItm.get('oid')
-        if oid is not None:
-            keyOfOid = str(hisItm.get('oid'))
-            g_history_map[keyOfOid] = hisItm
-
-initHistoryMap()
-
-def sortList():
-    g_LIST_HISTORY.sort(key=lambda p: p.get('view_at'),reverse=True)
-
-
-sortList()
-
-
- 
 
 
 
@@ -71,13 +46,8 @@ def addHistoryItmes(items):
             oid = itm.get('oid')
             if oid is not None:
                 key = str(oid)
-                cached = g_history_map.get(key)
-                if cached is None:
-                    g_LIST_HISTORY.append(itm)
-                else:
-                    print('已经存在，更新time即可')
-                    view_at = itm.get('view_at')
-                    cached['view_at'] = view_at
+                db.insertHistoryItem(itm)
+                 
 
 
 
@@ -85,9 +55,7 @@ def addHistoryItmes(items):
 
 
 def save():
-    sortList()
-    config.saveJsonConfig(HistoryObj,'history')
-
+    printD('skip')
 
 def getViewHistory(timeSec = 0):
     data  = {
@@ -124,13 +92,14 @@ def getViewHistory(timeSec = 0):
 
 
 def updateHistory():
-    if len(g_LIST_HISTORY) == 0:
+    if db.hisgetHistoryCount() == 0:
         print("本地无数据，不能增量更新，直接 getAll 吧")
         return
     
-    timeMax = g_LIST_HISTORY[0].get('view_at')
+    
 
-    queryTime = 0
+    queryTime = db.getFarestHistoryTime()
+    
     while 1:
        view_at,list =  getViewHistory(queryTime)
        if view_at > 0 and list is not None:
@@ -331,34 +300,9 @@ def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
 
 g_cmt_idx = {}
 
-_CMTCFG = None
-def getCommentsCfg():
-    global _CMTCFG
-    if _CMTCFG is not None:
-        return _CMTCFG
-
-    RepConfig = config.getJsonConfig("comments2")
-    listCmts = RepConfig.get('list')
-    if listCmts is None:
-        listCmts = []
-        RepConfig['list'] = listCmts
-    
-
-    for itm in listCmts:
-        key = f"RP-{itm.get('oid')}-{itm.get('rpid')}"
-        g_cmt_idx[key] = 1
-
-    _CMTCFG = RepConfig
-    return _CMTCFG
 
  
-def insertRep(listCmts,itm,title,extraItm=None):
-    key = f"RP-{itm.get('oid')}-{itm.get('rpid')}"
-    if g_cmt_idx.get(key) == 1:
-        # print('重复了，skip')
-        return
-
-
+def insertRep(itm,title,extraItm=None):
     cmtObj =  {
                     "oid":itm.get("oid_str"),
                     "rpid":itm.get("rpid_str"),
@@ -371,30 +315,25 @@ def insertRep(listCmts,itm,title,extraItm=None):
         cmtObj = { ** cmtObj , ** extraItm}
 
 
-    printD(cmtObj.get('msg'))
-    listCmts.append(cmtObj)
+    db.insertCommentItem(cmtObj)
     
 
 def dealCommentOnHistory(listMyComent,historyItm):
-    RepConfig = getCommentsCfg()
-    listCmts = RepConfig.get('list')
     for cmt in listMyComent:
-        insertRep(listCmts,cmt,historyItm.get('part'),{'bvid':historyItm.get('bvid')})
-    config.saveJsonConfig(RepConfig,'comments2')
+        insertRep(cmt,historyItm.get('part'),{'bvid':historyItm.get('bvid')})
+
 
 def getAllReplies(Revers=True):
 
-    RepConfig = getCommentsCfg()
-    listCmts = RepConfig.get('list')
-    
+ 
 
-    ta = QueryProgress.get('LastTimeAt')
+    ta,oid, initPage= db.getCurrentQueryProgress()
     if ta is None:
         ta = 0
     
     # 从后往前
 
-    initPage = QueryProgress.get('page') if     QueryProgress.get('page') is not None else 1
+    initPage = 1 if  initPage is  None else initPage
     print('beginAtPage',initPage)
     _counter = 0
     for idx in range(len(g_LIST_HISTORY) - 1, -1, -1):
@@ -493,9 +432,7 @@ def importRepliesViaAICUData():
 
              
 
-
-
-if __name__ == '__main__':
+def mainfunc():
     if 0:
         RepConfig = getCommentsCfg()
         listCmts = RepConfig.get('list')
@@ -515,6 +452,14 @@ if __name__ == '__main__':
     # getAll()
     # updateHistory()
     getAllReplies()
+
+if __name__ == '__main__':
+    try:
+        db.initDB()
+        mainfunc()
+    finally:
+        db.closeDb()
+
 
 
     
