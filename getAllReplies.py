@@ -90,8 +90,9 @@ def updateHistory():
     near,far = db.getHistoryTimeRange()
     printD(timeStamp2Str(near))
     
+    queryTime = 0
     while 1:
-       view_at,list =  getViewHistory(near)
+       view_at,list =  getViewHistory(queryTime)
        if view_at > 0 and list is not None:
         newList = []
         for itm in list:
