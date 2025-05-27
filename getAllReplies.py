@@ -303,9 +303,35 @@ def dealCommentOnHistory(listMyComent,historyItm):
         insertRep(cmt,historyItm.get('part'),{'bvid':historyItm.get('bvid')})
 
 
-def getAllReplies(Revers=True):
+def checkNeedStop(list,preList):
+    """
+    检查是否需要停止查询
+    如果当前查询的评论和上次查询的评论相同，则停止
+    """
+    if list is None or len(list) == 0:
+        return True
+    
+    if preList is None or len(preList) == 0:
+        return False
+    
+    # 判断两个 list 是否相同，相同就停止，防止死循环
+    if len(list) != len(preList):
+        return False
+    
+    first = list[0]
+    last = list[-1]
 
- 
+    first2 = preList[0]
+    last2 = preList[-1]
+
+    if first['oid'] == first2['oid']  and last['oid'] == last2['oid']  :
+        printD('循环检测：相同，停止')
+        return True
+    else:
+        printD('循环检测：不同，继续')
+        return False
+
+def getAllReplies(Revers=True):
 
     ta,oid, initPage= db.getCurrentQueryProgress()
     printD('BEGIN',timeStamp2Str(ta),oid,initPage)
@@ -317,9 +343,13 @@ def getAllReplies(Revers=True):
     initPage = 1 if  initPage is  None else initPage
     print('beginAtPage',initPage)
     _counter = 0
-    historyCount = db.getUnQueryHistoryCount()
+
+    PRELIST = None
     while 1:
         hisList = db.getUnqueryHistory()
+        if checkNeedStop(hisList,PRELIST):
+            break
+        PRELIST = hisList
         if hisList is None or len(hisList) == 0:
             break
         for  itm in hisList:
@@ -328,7 +358,7 @@ def getAllReplies(Revers=True):
                 pageIdx = 1 if initPage < 0 or ta != itm.get('view_at') else initPage
 
                 updateProgres(itm.get('view_at'),None,itm.get("oid"))
-                print(f"seq {_counter} {historyCount}")
+                print(f"seq {_counter} {len(hisList)}")
                 r,_ = getRepiesInHistory(itm,pageIdx,seq=_counter,callback=dealCommentOnHistory)
                 initPage = -1; # 第一次才需要
                 if r < 0:
