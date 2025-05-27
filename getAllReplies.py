@@ -425,14 +425,14 @@ def getReplyListFromAICUAtPage(idx,uid=UID):
              
 
 def getReplyListFromAICU():
-    timePre = int(db.getConfig('last-time-query-aicu'))
+    timePre = db.getConfig('last-time-query-aicu2')
     nowSec = int(time.time())
     print(f"now\n{timeStamp2Str(nowSec)}\nprevious{ timeStamp2Str(timePre)if timePre is not None else None}")
-    if timePre is not None and  int(time.time()) - nowSec < 15 * 60 * 60 * 24:
+    if timePre is not None and    nowSec - timePre < 15 * 60 * 60 * 24:
         print("最近15天已经查询过了，跳过")
         return
     
-    db.setConfig('last-time-query-aicu',nowSec)
+    db.setConfig('last-time-query-aicu2', intV=nowSec)
     pg = 1
     while 1:
         res = getReplyListFromAICUAtPage(pg)
