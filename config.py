@@ -52,7 +52,7 @@ def getJsonConfig(name,NonIfNotExist=False):
     except Exception as e :
         if NonIfNotExist:
             return None
-        print('读取配置错误，创建一个空配置',e)
+        print('读取配置错误，创建一个空配置',name,e)
         return {}
     
 
