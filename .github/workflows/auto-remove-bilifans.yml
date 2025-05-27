@@ -52,6 +52,7 @@ jobs:
     - name: Delete
       continue-on-error: true
       run: |
+        python3 -u refreshCookie.py
         python3 -u deleteFans.py
         python3 -u getAllReplies.py
         python3 -u deleteReplies.py
