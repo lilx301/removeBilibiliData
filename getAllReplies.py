@@ -197,7 +197,7 @@ def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
         }
         print(f"query[{seq}]",pageIdx  )
         if pageIdx % 10 == 9 :
-            printD(f"{historyItem.get('part')}  {timeStamp2Str(historyItem.get("view_at"))}" )
+            printD(f"{historyItem.get('part')}  {timeStamp2Str(historyItem.get('view_at'))}" )
         try:
             res = session.get('https://api.bilibili.com/x/v2/reply',params=data,headers=headers,proxies={},timeout=10)
         except Exception as e:
