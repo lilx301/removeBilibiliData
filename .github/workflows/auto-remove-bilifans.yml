@@ -11,7 +11,7 @@ on:
   pull_request:
     branches: [ "master" ]
   schedule:
-    - cron: '10 10 1,11,23 * *'
+    - cron: '10 10 * * *'
   
 
 permissions:
@@ -53,6 +53,7 @@ jobs:
       continue-on-error: true
       run: |
         python3 -u deleteFans.py
+        python3 -u getAllReplies.py
         python3 -u deleteReplies.py
       env:
         CFGKEY: '${{ secrets.CFGKEY }}'
