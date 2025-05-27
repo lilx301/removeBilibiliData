@@ -180,7 +180,7 @@ def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
     oid = f"{historyItem.get('oid')}"
 
     print(f"getReplies[{seq}]",bt)
-    printD(f"{oid},{historyItem.get('part')}   \n{timeStamp2Str(historyItem.get("view_at"))}")
+    printD(f"{oid},{historyItem.get('part')}   \n{timeStamp2Str(historyItem.get('view_at'))}")
 
     NetRetryMax = 5
 
