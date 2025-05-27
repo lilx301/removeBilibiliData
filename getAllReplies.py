@@ -142,15 +142,13 @@ def getAllHistories():
 
 
 
-QueryProgress = config.getJsonConfig("query_progress")
 
-LstCmtTimeForOid = config.getJsonConfig("LstCmtTimeForOid")
+
+
 
 def setLastCmtTime(oid,time):
     db.updateHistoryLatestCommentTime(oid,time)
-def getLastCmtTime(oid):
-    t = LstCmtTimeForOid.get(oid)
-    return t if t is not None else 0
+
 
 def updateProgres(time,page,reverse = True,oid=None):
     db.updateQueryCommentCtx(time,oid,page)
@@ -185,7 +183,7 @@ def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
     NetRetryMax = 5
 
 # 上次最新时间戳
-    preQueryLatestTime =  getLastCmtTime(oid)
+    preQueryLatestTime =  historyItem.get('newest_cmt_time')
 
     firstTime = 0
     while 1:
