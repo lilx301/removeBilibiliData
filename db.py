@@ -183,6 +183,7 @@ def insertHistoryItem(item):
 
 
     if _checkRowExsit(oidStr,'histories','oid'):
+        printD("历史记录已存在，跳过插入",oidStr)
         # 存在就 更新 时间
         updateHistoryViewTime(oidStr,item.get('view_at'))
 
@@ -440,28 +441,28 @@ if __name__ == '__main__':
     
 
      initDB()
-     exportComent(True)
+     exportComent(False)
 
     #  printD(getUnqueryHistory())
     #  setConfig("TESTb",None,12)
-     insertHistoryFromConfig()
-     insertCommentsFromConfig()
-     updateHistoryLatestCmtTimeFromConfig()
+    #  insertHistoryFromConfig()
+    #  insertCommentsFromConfig()
+    #  updateHistoryLatestCmtTimeFromConfig()
 
-     setQueryCtrFromCfg()
+    #  setQueryCtrFromCfg()
 
-    #  printD(getCurrentQueryProgress())
+    # #  printD(getCurrentQueryProgress())
 
-     setQueryHistoryFromCfg()
+    #  setQueryHistoryFromCfg()
 
-     printD(getQueryHistoryCtx())
+    #  printD(getQueryHistoryCtx())
 
-     printD(getHistoryCount())
+    #  printD(getHistoryCount())
 
 
-     printD(getUnqueryHistory())
+    #  printD(getUnqueryHistory())
 
-     printD('XBd',getUndeletedComments()[1])
+    #  printD('XBd',getUndeletedComments()[1])
 
   
 

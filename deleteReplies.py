@@ -112,13 +112,46 @@ def deleteReplyItem(replyItem):
     else:
         print("移除失败:", re)
         return 0
+
+
+def checkLoopShoudStop(list2Del,preList):
+    if list2Del is None or len(list2Del) == 0:
+        return True
     
+    if preList is None or len(preList) == 0:
+        return False
+    
+    # 判断两个 list 是否相同，相同就停止，防止死循环
+    if len(list2Del) != len(preList):
+        return False
+    
+    first = list2Del[0]
+    last = list2Del[-1]
+
+    first2 = preList[0]
+    last2 = preList[-1]
+
+    if first['oid'] == first2['oid'] and first['rpid'] == first2['rpid'] and last['oid'] == last2['oid'] and last['rpid'] == last2['rpid']:
+        printD('循环检测：相同，停止')
+        return True
+    else:
+        printD('循环检测：不同，继续')
+        return False
+    
+
+
+
 
 def startDelete(timeStamp):
     STOP=0
 
+    preList = None
     while STOP == 0:
+        
         list2Del = db.getUndeletedComments(timeStamp)
+        if checkLoopShoudStop(list2Del, preList):
+            break
+        preList = list2Del
  
         if list2Del is  None or len(list2Del) == 0:
             print('无--未删除的评论')
