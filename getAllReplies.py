@@ -184,6 +184,7 @@ def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
 
 # 上次最新时间戳
     preQueryLatestTime =  historyItem.get('newest_cmt_time')
+    preQueryLatestTime = 0 if preQueryLatestTime is None else preQueryLatestTime
 
     firstTime = 0
     while 1:
