@@ -418,7 +418,7 @@ def getComments(all=False):
  
 
 def exportComent(all = True):
-    cursor.execute(f"select msg ,title,ctime from comments  { '' if all else  'where flag is NULL or flag = 0' } ")
+    cursor.execute(f"select msg ,title,ctime from comments  { '' if all else  'where flag is NULL or flag = 0' } order by ctime desc ")
     clst  = cursor.fetchall()
     arr = []
     for itm in clst:
@@ -426,7 +426,7 @@ def exportComent(all = True):
         mp['ctime'] = tool.timeStamp2Str(mp.get('ctime'))
         arr.append(mp)
 
-    cursor.execute("select bvid ,title,view_at from histories    ")
+    cursor.execute("select bvid ,title,view_at from histories  order by view_at desc  ")
     hlist  = cursor.fetchall()
     arr2 = []
     printD("历史记录数量",len(hlist))
