@@ -435,8 +435,10 @@ def combineSliceDb():
     with open(f"data/db/biliHash", 'r') as f:
         hashOri = f.read().strip()
         if sha != hashOri:
-            print("-- 数据库完整性校验失败 --")
+            print("\n\n\n-- 数据库完整性校验失败 --\n\n\n")
             raise RuntimeError("数据库完整性校验失败，切片文件可能损坏，请重新切片")
+        else:
+            print("\n\n\n-- 数据库完整性校验通过 ok --\n\n\n")
 
 
 
@@ -493,12 +495,16 @@ def exportComent(all = True):
     with open('data/export.json','w') as f:
         f.write(jsonstr)
 
-
+def test():
+    cursor.execute("update histories set newest_cmt_time = NULL where newest_cmt_time == 1")
+    conn.commit()
 
 if __name__ == '__main__':
  
      initDB()
      exportComent(False)
+
+     test()
 
     #  printD(getUnqueryHistory())
     #  setConfig("TESTb",None,12)

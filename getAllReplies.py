@@ -196,6 +196,7 @@ def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
             'type':type,
             'oid':oid,
             'sort':'0',
+            # 'ps':"20",
             "pn":str(pageIdx)
         }
         if pageIdx % 10 == 9 :
