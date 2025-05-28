@@ -75,13 +75,13 @@ jobs:
             git push origin HEAD:master
 
     - name: Sync To codeberg
-      uses: Lorem3/push2other@v1.1.0
+      uses: Lorem3/push2other@v1.2.0
       with:
           target-url: ${{ secrets.SYNC_URL1 }}
           private-key: ${{ secrets.SYNC_KEY }}
 
     - name: Sync To VS
-      uses: Lorem3/push2other@v1.1.0
+      uses: Lorem3/push2other@v1.2.0
       with:
           target-url: ${{ secrets.SYNC_URL2 }}
           private-key: ${{ secrets.SYNC_KEY }}
