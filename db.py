@@ -24,8 +24,8 @@ def closeDb():
 def initDB():
     global conn
     global cursor
-    decDb()
     if conn == None:
+        decDb()
         # 连接数据库（如果不存在会自动创建）
         conn = sqlite3.connect('data/bilidata.db')
         conn.row_factory = sqlite3.Row 
