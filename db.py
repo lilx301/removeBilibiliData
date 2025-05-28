@@ -167,12 +167,15 @@ def insertHistoryItem(item):
             "bvid": "BV133",
             "page": 1,
             "cid": 122,
-            "part": "标题",
+            "part": "标题 or xxx.mp4",
+            "title":"标题",
             "business": "archive",
             "dt": 1,
             "view_at": 174000000
         },
     '''
+
+    printD(f'{item.get("title")}       {item.get("part")}')
 
     oid = item.get('oid')
     if oid is None:
@@ -193,7 +196,7 @@ def insertHistoryItem(item):
     #  oid  bvid title, business view_at newest_cmt_time json          
     cursor.execute('''
         INSERT OR IGNORE INTO histories (oid , bvid , title, business ,view_at ,newest_cmt_time , json) VALUES (?,?,?,?,?,?,?)
-    ''',(oidStr,item.get('bvid'),item.get('part'),item.get('business'),item.get('view_at'),item.get('newest_cmt_time'),json.dumps(item, indent=4,ensure_ascii=False),))
+    ''',(oidStr,item.get('bvid'),item.get('title'),item.get('business'),item.get('view_at'),item.get('newest_cmt_time'),json.dumps(item, indent=4,ensure_ascii=False),))
     
     conn.commit()
 
@@ -283,11 +286,8 @@ def getCurrentQueryProgress():
     return getConfig('currentQueryTime'),getConfig('currentQueryOid'),getConfig('currentQueryPageNo')
 
 def getUnqueryHistory(CUNT=15):
-    viewAt,oid,pageNo = getCurrentQueryProgress()
-
-    printD(tool.timeStamp2Str(viewAt))
-
-    cursor.execute('SELECT * from "histories" where view_at >= ? and (newest_cmt_time is   null or newest_cmt_time = 0)   order by view_at desc   limit ?',(viewAt,CUNT) )
+    # viewAt,oid,pageNo = getCurrentQueryProgress()
+    cursor.execute('SELECT * from "histories" where   (newest_cmt_time is   null or newest_cmt_time = 0)   order by view_at asc   limit ?',(CUNT,) )
 
     rows = cursor.fetchall()
     r = []
@@ -429,18 +429,13 @@ def exportComent(all = True):
     with open('data/export.json','w') as f:
         f.write(jsonstr)
 
-def test():
-
-    conn.commit()
-
+ 
 
 
 if __name__ == '__main__':
-
-    
-
+ 
      initDB()
-     exportComent(True)
+     exportComent(False)
 
     #  printD(getUnqueryHistory())
     #  setConfig("TESTb",None,12)
@@ -465,7 +460,7 @@ if __name__ == '__main__':
 
   
 
-     test()
+
 
 
 

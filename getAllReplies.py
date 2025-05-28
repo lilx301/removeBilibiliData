@@ -75,6 +75,10 @@ def getViewHistory(timeSec = 0):
             obj = itm.get('history')
             if obj is not None:
                 obj['view_at'] = itm.get('view_at')
+
+                titleA = itm.get('title')
+                
+                obj['title'] = titleA
                 resultList.append(obj)
         return resultList[-1]['view_at'],resultList
 
@@ -150,7 +154,7 @@ def setLastCmtTime(oid,time):
     db.updateHistoryLatestCommentTime(oid,time)
 
 
-def updateProgres(time,page,reverse = True,oid=None):
+def updateProgres(time,page,oid=None):
     db.updateQueryCommentCtx(time,oid,page)
 
 
@@ -178,7 +182,7 @@ def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
     oid = f"{historyItem.get('oid')}"
 
     print(f"getReplies[{seq}]",bt)
-    printD(f"{oid},{historyItem.get('part')}   \n{timeStamp2Str(historyItem.get('view_at'))}")
+    printD(f"{oid},{historyItem.get('title')}   \n{timeStamp2Str(historyItem.get('view_at'))}")
 
     NetRetryMax = 5
 
@@ -194,9 +198,8 @@ def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
             'sort':'0',
             "pn":str(pageIdx)
         }
-        print(f"query[{seq}]",pageIdx  )
         if pageIdx % 10 == 9 :
-            printD(f"{historyItem.get('part')}  {timeStamp2Str(historyItem.get('view_at'))}" )
+            printD(f"{historyItem.get('title')}  {timeStamp2Str(historyItem.get('view_at'))}" )
         try:
             res = session.get('https://api.bilibili.com/x/v2/reply',params=data,headers=headers,proxies={},timeout=10)
         except Exception as e:
@@ -299,7 +302,7 @@ def insertRep(itm,title,extraItm=None):
 
 def dealCommentOnHistory(listMyComent,historyItm):
     for cmt in listMyComent:
-        insertRep(cmt,historyItm.get('part'),{'bvid':historyItm.get('bvid')})
+        insertRep(cmt,historyItm.get('title'),{'bvid':historyItm.get('bvid')})
 
 
 def checkNeedStop(list,preList):
@@ -332,8 +335,8 @@ def checkNeedStop(list,preList):
 
 def getAllReplies(Revers=True):
 
-    ta,oid, initPage= db.getCurrentQueryProgress()
-    printD('BEGIN',timeStamp2Str(ta),oid,initPage)
+    ta,preQueryOid, initPage= db.getCurrentQueryProgress()
+    printD('BEGIN',timeStamp2Str(ta),preQueryOid,initPage)
     if ta is None:
         ta = 0
     
@@ -344,6 +347,8 @@ def getAllReplies(Revers=True):
     _counter = 0
 
     PRELIST = None
+
+    ALLNeedQuery = db.getUnQueryHistoryCount()
     while 1:
         hisList = db.getUnqueryHistory()
         if checkNeedStop(hisList,PRELIST):
@@ -354,10 +359,17 @@ def getAllReplies(Revers=True):
         for  itm in hisList:
             _counter += 1
             if itm.get('view_at') is not None and itm.get('view_at') >= ta or 1:
-                pageIdx = 1 if initPage < 0 or ta != itm.get('view_at') else initPage
+                if _counter == 1 and itm.get('oid') == preQueryOid and initPage > 0:
+                    pageIdx = initPage
+                    printD('continue ',_counter, itm.get('oid'),itm.get('view_at'),pageIdx)
+                else:
+                    pageIdx = 1
+                    
+                  
+                    
 
                 updateProgres(itm.get('view_at'),None,itm.get("oid"))
-                print(f"seq {_counter} {len(hisList)}")
+                print(f"seq {_counter} / {ALLNeedQuery}")
                 r,_ = getRepiesInHistory(itm,pageIdx,seq=_counter,callback=dealCommentOnHistory)
                 initPage = -1; # 第一次才需要
                 if r < 0:
@@ -456,7 +468,7 @@ def getReplyListFromAICUAtPage(idx,uid=UID):
 def getReplyListFromAICU():
     timePre = db.getConfig('last-time-query-aicu2')
     nowSec = int(time.time())
-    print(f"now\n{timeStamp2Str(nowSec)}\nprevious{ timeStamp2Str(timePre)if timePre is not None else None}")
+    print(f"now:\t{timeStamp2Str(nowSec)}\npre\t{ timeStamp2Str(timePre)if timePre is not None else None}")
     if timePre is not None and    nowSec - timePre < 15 * 60 * 60 * 24:
         print("最近15天已经查询过了，跳过")
         return
