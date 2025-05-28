@@ -13,6 +13,8 @@ ENC =AEScoder(os.getenv('CFGKEY'))
 conn = None
 cursor = None
 
+import hashlib
+
 def closeDb():
     if conn is not None:
         cursor.close()
@@ -398,7 +400,7 @@ def encDb():
     try:
         sliceDbFile()
     except Exception as e:
-        pass
+        printD("切片失败",e)
 
 
 
@@ -406,6 +408,7 @@ def encDb():
 
 def combineSliceDb():
    
+    dgst = hashlib.new('sha256')
     COUNT = 0
     with open(f"data/db/biliCount", 'r') as f:
         COUNT = int(f.read())
@@ -417,6 +420,7 @@ def combineSliceDb():
         for i in range(0, COUNT):
             with open(f"data/db/bili.part{i}", 'rb') as in_file:
                 chunkOri = in_file.read()
+                dgst.update(chunkOri)
                 gzipped_chunk = ENC.decryptBin(chunkOri)
                 # 解压缩
                 chunk = gzip.decompress(gzipped_chunk)
@@ -424,9 +428,22 @@ def combineSliceDb():
                 out_file.write(chunk)
 
 
+    # 检查完整性
+    sha = dgst.hexdigest()
+    printD("合并完成",COUNT,"个文件",sha)
+
+    with open(f"data/db/biliHash", 'r') as f:
+        hashOri = f.read().strip()
+        if sha != hashOri:
+            print("-- 数据库完整性校验失败 --")
+            raise RuntimeError("数据库完整性校验失败，切片文件可能损坏，请重新切片")
+
+
 
 
 def sliceDbFile():
+
+    dgst = hashlib.new('sha256')
 
     
     # sqlite 页 4096 尽量减少 大文件变动
@@ -439,11 +456,17 @@ def sliceDbFile():
                 break
             gzipped_chunk = gzip.compress(chunk, mtime=0, compresslevel=5)
             binEnc = ENC.encryptBin(gzipped_chunk)
+            dgst.update(binEnc)
             with open(f"data/db/bili.part{i}", 'wb') as out_file:
                 out_file.write(binEnc)
             i += 1
         with open(f"data/db/biliCount", 'w') as out_file:
             out_file.write(str(i))
+
+        with open(f"data/db/biliHash", 'w') as out_file:
+            dgstResult = dgst.hexdigest()
+            out_file.write(dgstResult)
+            print("切片完成",i,"个文件",dgstResult)
         
     
 
