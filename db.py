@@ -405,16 +405,6 @@ def encDb():
             df.write(decData)
 
 
-
-def getComments(all=False):
-    cursor.execute(f"select msg ,title,ctime from comments  { '' if all else  'where flag is NULL or flag = 0' } ")
-    clst  = cursor.fetchall()
-    arr = []
-    for itm in clst:
-        mp = dict(itm)
-        arr.append(mp)
-    return arr
-
  
 
 def exportComent(all = True):
