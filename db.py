@@ -7,8 +7,9 @@ import config
 from debug import printD
 import json
 import tool 
+import gzip
 from aes import AEScoder 
-
+ENC =AEScoder(os.getenv('CFGKEY'))
 conn = None
 cursor = None
 
@@ -386,26 +387,66 @@ def setQueryHistoryFromCfg():
 
 
 def decDb():
-    with open("data/ebilidata.edb",'rb') as f:
-        dbdata = f.read()
-        print('dbSize',len(dbdata))
-        ENC =AEScoder(os.getenv('CFGKEY'))
-        decData = ENC.decryptBin(dbdata)
-        with open("data/bilidata.db",'wb') as df:
-            df.write(decData)
+    try:
+        combineSliceDb()
+    except Exception as e:
+        pass
+
 
 
 def encDb():
-    with open("data/bilidata.db",'rb') as f:
-        dbdata = f.read()
-        print('dbSize',len(dbdata))
-        ENC =AEScoder(os.getenv('CFGKEY'))
-        decData = ENC.encryptBin(dbdata)
-        with open("data/ebilidata.edb",'wb') as df:
-            df.write(decData)
+    try:
+        sliceDbFile()
+    except Exception as e:
+        pass
 
 
- 
+
+
+
+def combineSliceDb():
+   
+    COUNT = 0
+    with open(f"data/db/biliCount", 'r') as f:
+        COUNT = int(f.read())
+    
+    # data/bilidata.db 清空
+    with open('data/bilidata.db', 'w') as f:
+        pass  # 或 f.write('')
+    with open('data/bilidata.db', 'ab') as out_file:
+        for i in range(0, COUNT):
+            with open(f"data/db/bili.part{i}", 'rb') as in_file:
+                chunkOri = in_file.read()
+                gzipped_chunk = ENC.decryptBin(chunkOri)
+                # 解压缩
+                chunk = gzip.decompress(gzipped_chunk)
+                # 写入到输出文件    
+                out_file.write(chunk)
+
+
+
+
+def sliceDbFile():
+
+    
+    # sqlite 页 4096 尽量减少 大文件变动
+    chunk_size = 40960
+    with open('data/bilidata.db','rb') as f:
+        i = 0
+        while True:
+            chunk = f.read(chunk_size)
+            if not chunk:
+                break
+            gzipped_chunk = gzip.compress(chunk, mtime=0, compresslevel=5)
+            binEnc = ENC.encryptBin(gzipped_chunk)
+            with open(f"data/db/bili.part{i}", 'wb') as out_file:
+                out_file.write(binEnc)
+            i += 1
+        with open(f"data/db/biliCount", 'w') as out_file:
+            out_file.write(str(i))
+        
+    
+
 
 def exportComent(all = True):
     cursor.execute(f"select msg ,title,ctime from comments  { '' if all else  'where flag is NULL or flag = 0' } order by ctime desc ")
@@ -429,7 +470,6 @@ def exportComent(all = True):
     with open('data/export.json','w') as f:
         f.write(jsonstr)
 
- 
 
 
 if __name__ == '__main__':
@@ -465,8 +505,8 @@ if __name__ == '__main__':
 
 
 
-     cursor.execute("vacuum;")
-     conn.commit()
+    #  cursor.execute("vacuum;")
+    #  conn.commit()
      closeDb()
      exit(1)
   
