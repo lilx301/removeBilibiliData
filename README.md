@@ -47,9 +47,13 @@ https://www.aicu.cc/reply.html?uid=${uid}
 
 
 
+> 通过历史记录轮询，查询评论，可能会有遗
+
+
 #TODO
 - [x] 刷新cookie，果然事情没这么简单。  
-- [ ] 改为sqlite ? 
+- [x] 改为sqlite ? 
+
 
 
 [接口这里](https://github.com/SocialSisterYi/bilibili-API-collect/blob/master/docs/login/cookie_refresh.md)
