@@ -233,7 +233,7 @@ def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
         print('    page', pageIdx,jObj.get("code"),jObj.get("ttl"),jObj.get("message"),pageCount,COUNT)
         if jObj.get("code") != 0:
             print('---------------ERROR ??',bt,oid,historyItem.get('view_at'))
-            db.updateHistoryLatestCommentTime(oid,1)
+            db.updateHistoryLatestCommentTime(oid,jObj.get("code"))
 
             return 0, None,
 
