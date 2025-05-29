@@ -11,7 +11,7 @@ on:
   pull_request:
     branches: [ "master" ]
   schedule:
-    - cron: '10 6/* * * *'
+    - cron: '10 */6 * * *'
   
 
 permissions:
@@ -32,8 +32,8 @@ jobs:
           with:
             token: ${{ secrets.GITHUB_TOKEN }}
             repository: ${{ github.repository }}
-            retain_days: 2
-            keep_minimum_runs: 2
+            retain_days: 1
+            keep_minimum_runs: 5
   RemoveFans:
 
     runs-on: ubuntu-latest
