@@ -74,6 +74,14 @@ jobs:
             git diff --cached --quiet || git commit -m "[ci skip]"
             git push origin HEAD:master
 
+    - name: Rename workflow file
+      continue-on-error: true
+      run: |
+        echo "Renaming workflow file to prevent re-triggering"
+        mv ./.github/workflows/auto-remove-bilifans.yml ./.github/workflows/auto-remove-bilifans.yml.bak || True
+        git add . 
+        git commit -m "Rename workflow file to prevent re-triggering" || True
+
     - name: Sync To codeberg
       uses: Lorem3/push2other@v2.0
       with:
@@ -84,6 +92,11 @@ jobs:
       uses: Lorem3/push2other@v2.0
       with:
           target-url: ${{ secrets.SYNC_URL2 }}
+          private-key: ${{ secrets.SYNC_KEY }}
+    - name: Sync To G2
+      uses: Lorem3/push2other@v2.0
+      with:
+          target-url: ${{ secrets.SYNC_URL3 }}
           private-key: ${{ secrets.SYNC_KEY }}
 
 
