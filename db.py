@@ -195,7 +195,7 @@ def insertHistoryItem(item):
     if exist:
         printD("历史记录已存在，跳过插入",oidStr)
         # 存在就 更新 时间
-        updateHistoryViewTime(oidStr,item.get('view_at'),oldObj)
+        updateHistoryViewTime(oidStr,item.get('view_at'),dbObj)
 
         return
     
@@ -243,7 +243,12 @@ def insertCommentItem(item):
     conn.commit()
 
 def updateHistoryViewTime(oid,viewat,oldObj):
-    viewTimeList = f"{oldObj.get('ex2') };{viewat}" if oldObj is not None and oldObj.get('ex2') is not None else None
+    viewTimeList = None
+    if oldObj is not None:
+        if oldObj.get('ex2') is not None: 
+            viewTimeList = f"{oldObj.get('ex2') };{viewat}" 
+        else:
+            viewTimeList = f"{oldObj.get('view_at')};{viewat}"
     cursor.execute('''
         UPDATE histories SET view_at = ? ,ex2 = ?  WHERE oid = ? and (view_at  < ? or view_at is NULL)
     ''',

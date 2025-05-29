@@ -242,7 +242,8 @@ def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
 
         if list is not None:
             if  firstTime == 0 :
-                if len(list) == 0:
+                # 中断重新载入的，直接当做最新时间
+                if len(list) == 0 or pageIdx > 1:
                     firstTime = int(time.time())
                 else:
                     firstTime = list[0].get('ctime')
@@ -272,6 +273,22 @@ def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
         if timeLst is not None and timeLst < preQueryLatestTime:
             print("已经超过上次的了查询，skip")
             break
+
+        # 早于观看时间段评论忽略，这样可能一个视频多次观看会遗漏，但是，就这样吧，希望不会有太多，aicu 能兜底的吧
+        viewAtStr = historyItem.get('ex2')
+        if viewAtStr is not None and len(viewAtStr) > 0:
+            oldestTimeStr = viewAtStr.split(';')[0]
+            oldestTime = int(oldestTimeStr)
+            if timeLst is not None and timeLst < oldestTime:
+                print("早于观看时间的评论忽略吧22...")
+                break
+        else:
+            printD(f"第 {pageIdx} 页，最新时间：{timeStamp2Str(timeLst)},")
+            if timeLst is not None and historyItem.get('view_at') is not None and timeLst < historyItem.get('view_at'):
+                print("早于观看时间的评论忽略吧...")
+                break
+
+        
         
         pageIdx += 1
         time.sleep(3.5 + random.random() * 1)
