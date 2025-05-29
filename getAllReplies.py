@@ -182,7 +182,7 @@ def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
     oid = f"{historyItem.get('oid')}"
 
     print(f"getReplies[{seq}]",bt)
-    printD(f"{oid},{historyItem.get('title')}   \n{timeStamp2Str(historyItem.get('view_at'))}")
+    printD(f"{oid},{historyItem.get('title')}   \t{timeStamp2Str(historyItem.get('view_at'))}")
 
     NetRetryMax = 5
 
@@ -421,53 +421,6 @@ def testGetRep():
 
     print('EE')
 
-
-def importRepliesViaAICUData():
-    print("从aicu 也就是 comments.json.enc 读取 评论，载入到 comments2")
-
-    cmtMap = config.getJsonConfig('comments')
-    keys = cmtMap.keys()
-    for key in keys:
-        if not key.startswith("RP-"):
-            continue
-
-        arr = key.split('-')
-        if len(arr ) == 3:
-            oid = arr[1]
-            rpid = arr[2]
-            value = cmtMap.get(key)
-            ctime = None
-            dtime = None
-            flag = None
-            msg = value
-            if ']-[del-' in value:
-                parts = re.split(r'  ------\[|\]-\[del-|\]$', value)
-                ctime = ymd2Stamp(parts[1])
-                dtime = ymd2Stamp(parts[2])
-                flag = 1
-                msg = parts[0]
-                
-            
-
-            #已经删了
-            itm = {
-                "oid": oid,
-                "rpid": rpid,
-                "ctime": ctime,
-                'delTime':dtime,
-                "flag":flag,
-                "msg":msg
-            }
-
-            # {
-            #         "oid":itm.get("oid_str"),
-            #         "rpid":itm.get("rpid_str"),
-            #         "ctime":itm.get("ctime"),
-            #         "msg":getObjWithKeyPath(itm,'content.message'),
-            #         "title":title
-            #     }
-
-            insertRep({"oid":oid,"rpid":rpid},None,itm)
 
     
 
