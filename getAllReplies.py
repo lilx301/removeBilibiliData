@@ -274,7 +274,7 @@ def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
             break
         
         pageIdx += 1
-        time.sleep(1.5 + random.random() * 1)
+        time.sleep(3.5 + random.random() * 1)
 
     if firstTime is not None and firstTime > 0 :
         setLastCmtTime(oid,firstTime)
@@ -470,7 +470,7 @@ def getReplyListFromAICU():
     timePre = db.getConfig('last-time-query-aicu2')
     nowSec = int(time.time())
     print(f"now:\t{timeStamp2Str(nowSec)}\npre\t{ timeStamp2Str(timePre)if timePre is not None else None}")
-    if timePre is not None and    nowSec - timePre < 15 * 60 * 60 * 24:
+    if timePre is not None and    nowSec - timePre < 5 * 60 * 60 * 24:
         print("最近15天已经查询过了，跳过")
         return
     

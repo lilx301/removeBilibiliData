@@ -63,6 +63,9 @@ def initDB():
         },
          '''
         # 历史记录
+        # ex1 表示来源，是否是AICU
+        # ex2 表示访问时间，用 ;分割
+        
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS histories (
 
@@ -152,14 +155,14 @@ def getConfig(KEY):
 def _checkRowExsit(key,tableName,keyname):
 
     cursor.execute(f""" 
-                    SELECT db_create_time from "{tableName}" where {keyname} = ? limit 1
+                    SELECT * from "{tableName}" where {keyname} = ? limit 1
                    """,
                    (key,)
                    )
     exsist = cursor.fetchone()
     if exsist is not None:
-        return True
-    return False
+        return True,dict(exsist)
+    return False,None
 
 
 def insertHistoryItem(item):
@@ -187,11 +190,12 @@ def insertHistoryItem(item):
     
     oidStr = str(oid)
 
+    exist,dbObj = _checkRowExsit(oidStr,'histories','oid')
 
-    if _checkRowExsit(oidStr,'histories','oid'):
+    if exist:
         printD("历史记录已存在，跳过插入",oidStr)
         # 存在就 更新 时间
-        updateHistoryViewTime(oidStr,item.get('view_at'))
+        updateHistoryViewTime(oidStr,item.get('view_at'),oldObj)
 
         return
     
@@ -225,7 +229,8 @@ def insertCommentItem(item):
     oidStr = str(oid)
     rpidStr = str(rpid)
 
-    if _checkRowExsit(key,'comments','key'):
+    exsist, _ = _checkRowExsit(key,'comments','key')
+    if exsist:
         return
     
       # key oid    , bvid  , title  , rpid      , msg     , ctime  , deltime  , flag  ,   json     
@@ -237,11 +242,12 @@ def insertCommentItem(item):
     
     conn.commit()
 
-def updateHistoryViewTime(oid,viewat):
+def updateHistoryViewTime(oid,viewat,oldObj):
+    viewTimeList = f"{oldObj.get('ex2') };{viewat}" if oldObj is not None and oldObj.get('ex2') is not None else None
     cursor.execute('''
-        UPDATE histories SET view_at = ?  WHERE oid = ? and (view_at  < ? or view_at is NULL)
+        UPDATE histories SET view_at = ? ,ex2 = ?  WHERE oid = ? and (view_at  < ? or view_at is NULL)
     ''',
-    (viewat,str(oid),viewat)
+    (viewat,viewTimeList,str(oid),viewat)
     )
     conn.commit()
     
