@@ -282,11 +282,11 @@ def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
         if viewAtStr is not None and len(viewAtStr) > 0:
             oldestTimeStr = viewAtStr.split(';')[0]
             oldestTime = int(oldestTimeStr)
-            if timeLst is not None and timeLst < oldestTime:
+            if timeLst is not None and timeLst < oldestTime - 12 *  3600:
                 print("早于观看时间的评论忽略吧22...")
                 break
         else:
-            if timeLst is not None and historyItem.get('view_at') is not None and timeLst < historyItem.get('view_at'):
+            if timeLst is not None and historyItem.get('view_at') is not None and timeLst < historyItem.get('view_at') - 12 *  3600:
                 print("早于观看时间的评论忽略吧...")
                 break
 
