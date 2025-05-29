@@ -63,7 +63,7 @@ def deleteReplyItem(replyItem):
 
     url = "https://api.bilibili.com/x/v2/reply/del"
     data = {
-        'type': '1' if  replyItem.get('ex1') is None else replyItem['ex1'],
+        'type': '1' if  replyItem.get('ex2') is None else replyItem['ex2'],
         'oid': replyItem['oid'],
         'rpid': replyItem['rpid'],
         'csrf': csrf,

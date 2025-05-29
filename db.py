@@ -85,7 +85,7 @@ def initDB():
         },
          '''
         # 历史记录
-        # ex1 表示来源，是否是AICU
+        
         # ex2 表示访问时间，用 ;分割
         
         cursor.execute('''
@@ -113,6 +113,7 @@ def initDB():
 
 
          # 回复
+         # ex1 表示来源，是否是AICU
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS comments   (
             key TEXT PRIMARY KEY  NOT NULL,
