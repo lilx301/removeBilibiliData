@@ -35,7 +35,6 @@ jobs:
             retain_days: 1
             keep_minimum_runs: 5
   RemoveFans:
-    if: ${{ env.ENABLE_WORKFLOW == '1' }}
 
     runs-on: ubuntu-latest
 
