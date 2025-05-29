@@ -436,7 +436,8 @@ def combineSliceDb():
         hashOri = f.read().strip()
         if sha != hashOri:
             print("\n\n\n-- 数据库完整性校验失败 --\n\n\n")
-            raise RuntimeError("数据库完整性校验失败，切片文件可能损坏，请重新切片")
+            exit(1)
+            # raise RuntimeError("数据库完整性校验失败，切片文件可能损坏，请重新切片")
         else:
             print("\n\n\n-- 数据库完整性校验通过 ok --\n\n\n")
 
