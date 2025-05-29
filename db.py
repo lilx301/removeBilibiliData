@@ -161,6 +161,13 @@ def setConfig(KEY:str , strV : str = None, intV :int = None):
         conn.commit()
 
 
+def getNewestAICUCommentCtime():
+    cursor.execute("SELECT ctime FROM comments WHERE ex1 = 'AICU' ORDER BY ctime DESC LIMIT 1")
+    row = cursor.fetchone()
+    if row is None:
+        return None
+    return dict(row).get('ctime')   
+
 def getConfig(KEY):
     cursor.execute("SELECT ivalue,svalue  FROM config WHERE key = ? limit 1", (KEY,))
     row = cursor.fetchone()

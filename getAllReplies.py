@@ -442,15 +442,23 @@ def getReplyListFromAICU():
     timePre = db.getConfig('last-time-query-aicu2')
     nowSec = int(time.time())
     print(f"now:\t{timeStamp2Str(nowSec)}\npre\t{ timeStamp2Str(timePre)if timePre is not None else None}")
-    if timePre is not None and    nowSec - timePre < 5 * 60 * 60 * 24:
-        print("最近15天已经查询过了，跳过")
-        return
+    isFullQuery = False
+    print("查询AICU评论",nowSec - timePre)
+    if timePre is not None and    nowSec - timePre > 15 * 60 * 60 * 24:
+        print("最近15天已经查询过了，增量查询")
+        isFullQuery = True
+    else:
+        pass
+    
+    print("最近15天没有查询过，增量? ",isFullQuery)
     
     db.setConfig('last-time-query-aicu2', intV=nowSec)
-    pg = 1
-    while 1:
+
+    newestCtime = db.getNewestAICUCommentCtime()
+    printD(timeStamp2Str(newestCtime))
+
+    for pg in range(1,100000):
         res = getReplyListFromAICUAtPage(pg)
-        pg += 1
 
         print(res['data']['cursor'])
         list = res['data']['replies']
@@ -483,6 +491,10 @@ def getReplyListFromAICU():
         #     "flag": 1
         # },
 
+        t = list[-1]
+        if not isFullQuery and  t is not None and  t.get('time')  is not None and t.get('time') < newestCtime:
+            print("停止增量更新")
+            return
         time.sleep(1.5)
 
 
