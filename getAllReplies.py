@@ -230,7 +230,10 @@ def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
         
         pageCount = getObjWithKeyPath(jObj,'data.page.count')
         list = getObjWithKeyPath(jObj,'data.replies')
-        print('    page', pageIdx,jObj.get("code"),jObj.get("ttl"),jObj.get("message"),pageCount,COUNT)
+        lastTIme = ''
+        if list is not None and len(list) > 0 and list[-1].get('ctime') is not None:
+            lastTIme =  timeStamp2Str(list[-1].get('ctime'))
+        print(f' [{seq}] page:{pageIdx: 4d} code:{jObj.get("code")} ttl:{jObj.get("ttl")} msg:{jObj.get("message")} {COUNT: 4d}-{pageCount} T:{lastTIme}')
         if jObj.get("code") != 0:
             print('---------------ERROR ??',bt,oid,historyItem.get('view_at'))
             db.updateHistoryLatestCommentTime(oid,jObj.get("code"))
@@ -283,7 +286,6 @@ def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
                 print("早于观看时间的评论忽略吧22...")
                 break
         else:
-            printD(f"第 {pageIdx} 页，最新时间：{timeStamp2Str(timeLst)},")
             if timeLst is not None and historyItem.get('view_at') is not None and timeLst < historyItem.get('view_at'):
                 print("早于观看时间的评论忽略吧...")
                 break

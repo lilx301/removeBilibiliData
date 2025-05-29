@@ -44,7 +44,7 @@ def initDB():
     if conn == None:
 
         if checkOtherInstanceWorking():
-            printD("检测到其他实例正在运行，无法初始化数据库")
+            print("检测到其他实例正在运行，无法初始化数据库 [data/flg.txt == 1]   退出")
             exit(1)
         
         setWorkingFlag(True)
