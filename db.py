@@ -295,15 +295,25 @@ def updateHistoryLatestCommentTime(oid,timeSec):
     conn.commit()
 
 def updateCommentFlag(oid,rpid,flag):
+    
     if oid is None or rpid is None:
         return
     key = f"RP-{oid}-{rpid}"
+    printD('updateCommentFlag',oid,rpid,flag,key)
     cursor.execute('''
-        UPDATE comments SET flag = ?  WHERE key = ? and (flag != ? or flag is NULL)
+        UPDATE "comments" SET flag = ?  WHERE key = ?  
     ''',
-    (flag,key,flag)
+    (flag,key)
     )
+    
+    printD('before:',cursor.rowcount)
+
     conn.commit()
+
+
+    cursor.execute('SELECT * FROM "comments" WHERE key = ?', (key,))
+    after = cursor.fetchone()
+    printD('after:', dict(after)  if after is not None else None)
 
 
 def updateQueryCommentCtx(time_at,oid,pageIdx):
@@ -344,6 +354,7 @@ def getUnqueryHistory(CUNT=15):
 
 
 def getUndeletedComments(timeStamp,COUNT = 100):
+    printD('getUndeletedComments',timeStamp)
     cursor.execute('SELECT * from "comments" where ( flag is null or flag = 0  ) and ctime < ? order by ctime asc limit ? ', (timeStamp, COUNT))
     rows = cursor.fetchall()
     if rows is not None:
@@ -354,30 +365,6 @@ def getUndeletedComments(timeStamp,COUNT = 100):
         return r 
         
     return []
-def insertHistoryFromConfig():
-    HISTORY = config.getJsonConfig('history')
-    config.saveJsonConfig(HISTORY,'history')
-    hisList = HISTORY['list']
-    printD("history count",len(hisList))
-  
-    for i in hisList:
-        insertHistoryItem(i)
-    
-   
-
-    printD("XX",getHistoryCount())
-    
-def insertCommentsFromConfig():
-    clist = config.getJsonConfig('comments2')
-    cmtlist = clist['list']
-    for i in cmtlist:
-        insertCommentItem(i)
-
-def updateHistoryLatestCmtTimeFromConfig():
-    mp = config.getJsonConfig('LstCmtTimeForOid')
-    
-    for oid,time in mp.items():
-        updateHistoryLatestCommentTime(oid,time)
 
 
 
@@ -459,7 +446,7 @@ def combineSliceDb():
         pass  # 或 f.write('')
     with open('data/bilidata.db', 'ab') as out_file:
         for i in range(0, COUNT):
-            with open(f"data/db/bili.part{i}", 'rb') as in_file:
+            with open(dbfileNameForIdx(i), 'rb') as in_file:
                 chunkOri = in_file.read()
                 dgst.update(chunkOri)
                 gzipped_chunk = ENC.decryptBin(chunkOri)
@@ -483,7 +470,8 @@ def combineSliceDb():
             print("\n\n\n-- 数据库完整性校验通过 ok --\n\n\n")
 
 
-
+def dbfileNameForIdx(idx):
+    return f"data/db/bili.part_{idx:07d}"
 
 def sliceDbFile():
 
@@ -491,7 +479,7 @@ def sliceDbFile():
 
     
     # sqlite 页 4096 尽量减少 大文件变动
-    chunk_size = 40960
+    chunk_size = 4096 * 8
     with open('data/bilidata.db','rb') as f:
         i = 0
         while True:
@@ -501,7 +489,7 @@ def sliceDbFile():
             gzipped_chunk = gzip.compress(chunk, mtime=0, compresslevel=5)
             binEnc = ENC.encryptBin(gzipped_chunk)
             dgst.update(binEnc)
-            with open(f"data/db/bili.part{i}", 'wb') as out_file:
+            with open(dbfileNameForIdx(i), 'wb') as out_file:
                 out_file.write(binEnc)
             i += 1
         with open(f"data/db/biliCount", 'w') as out_file:
@@ -511,6 +499,24 @@ def sliceDbFile():
             dgstResult = dgst.hexdigest()
             out_file.write(dgstResult)
             print("切片完成",i,"个文件",dgstResult)
+        # 删除需要大于 count的文件
+
+        folder_path = 'data/db'  # 替换为你的目标文件夹路径
+
+        for filename in os.listdir(folder_path):
+            if filename.startswith('bili.part_'):
+                countF = int(filename.split('part_')[1])
+                file_path = os.path.join(folder_path, filename)
+                if countF >= i:
+                    printD('del',file_path,countF)
+                    os.remove(file_path)
+                    continue
+
+                
+                # if os.path.isfile(file_path):
+                    # os.remove(file_path)
+                    # print(f'Deleted: {file_path}')
+
         
     
 
@@ -538,7 +544,16 @@ def exportComent(all = True):
         f.write(jsonstr)
 
 def test():
-    cursor.execute("update histories set newest_cmt_time = NULL where newest_cmt_time == 1")
+    r = getUndeletedComments(1748503266 - 7 * 24 * 3600 )
+
+    for i in r :
+        if i.get('oid') is None or i.get('rpid') is None:
+            printD('eeee')
+            continue
+        printD(i)
+        printD(i.get('oid'),i.get('rpid'),i.get('ctime'),i.get('msg'),i.get('flag'))
+        updateCommentFlag(i.get('oid'),i.get('rpid'),1)
+        break
     conn.commit()
 
 if __name__ == '__main__':

@@ -14,4 +14,4 @@ def md5(data):
 
 s = '12412313124123131241231312412313124123131241231312412313124123131241231312412313';
 
-print(md5(gzip.compress(s.encode('utf-8'),mtime=0,compresslevel=9)))
+print(f"{333:04d}",int('0000123'))

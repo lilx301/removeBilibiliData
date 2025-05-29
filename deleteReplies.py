@@ -132,7 +132,7 @@ def checkLoopShoudStop(list2Del,preList):
     last2 = preList[-1]
 
     if first['oid'] == first2['oid'] and first['rpid'] == first2['rpid'] and last['oid'] == last2['oid'] and last['rpid'] == last2['rpid']:
-        printD('循环检测：相同，停止')
+        print('循环检测：相同，停止')
         return True
     else:
         printD('循环检测：不同，继续')
