@@ -20,13 +20,35 @@ def closeDb():
         cursor.close()
         conn.close()
     encDb()
+    setWorkingFlag(False)
+
+
+def setWorkingFlag(flg:bool):
+    with open("data/flg.txt",'w') as f:
+        f.write('1' if flg else '0')
+
+def checkOtherInstanceWorking():
+    try:
+        with open("data/flg.txt",'r') as f:
+            x = f.read()
+            return x == '1'
+    except Exception as e:
+        pass
     
 
+    return False
 
 def initDB():
     global conn
     global cursor
     if conn == None:
+
+        if checkOtherInstanceWorking():
+            printD("检测到其他实例正在运行，无法初始化数据库")
+            exit(1)
+        
+        setWorkingFlag(True)
+
         decDb()
         # 连接数据库（如果不存在会自动创建）
         conn = sqlite3.connect('data/bilidata.db')
