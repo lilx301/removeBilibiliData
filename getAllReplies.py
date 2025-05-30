@@ -511,8 +511,8 @@ def mainfunc():
 
     if taskType is None :
         
-        getReplyListFromAICU()
-        getAllReplies()
+        print("没有参数 1 更新历史记录，2 更新评论")
+
     elif taskType == '1':
         print("更新历史记录")
         updateHistory()

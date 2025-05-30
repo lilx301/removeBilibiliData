@@ -87,6 +87,8 @@ def initDB():
         # 历史记录
         
         # ex2 表示访问时间，用 ;分割
+        # ex1 表示是否请求过，评论 NULL 或者 0 表示未请求过，1 已经请求了，
+        # 历史记录重新更新，会重置
         
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS histories (
@@ -280,15 +282,16 @@ def updateHistoryViewTime(oid,viewat,oldObj):
         else:
             viewTimeList = f"{oldObj.get('view_at')};{viewat}"
     cursor.execute('''
-        UPDATE histories SET view_at = ? ,ex2 = ?  WHERE oid = ? and (view_at  < ? or view_at is NULL)
+        UPDATE histories SET view_at = ? ,ex2 = ? ,ex1 = NULL  WHERE oid = ? and ((view_at  < ? or view_at is NULL) or ex1 is not NULL)
     ''',
     (viewat,viewTimeList,str(oid),viewat)
     )
     conn.commit()
+    # TODO: 这里需要更新最新评论时间
     
 def updateHistoryLatestCommentTime(oid,timeSec):
     cursor.execute('''
-        UPDATE histories SET newest_cmt_time = ?  WHERE oid = ? and (newest_cmt_time  < ? or newest_cmt_time is NULL)
+        UPDATE histories SET newest_cmt_time = ? , ex1 = '1' WHERE oid = ? and (newest_cmt_time  < ? or newest_cmt_time is NULL)
     ''',
     (timeSec,str(oid),timeSec)
     )
@@ -339,9 +342,17 @@ def updateQueryHistoryCtx(timeNear,timeFar):
 def getCurrentQueryProgress():
     return getConfig('currentQueryTime'),getConfig('currentQueryOid'),getConfig('currentQueryPageNo')
 
+
+
+
+def getUnQueryHistoryCount():
+    cursor.execute('SELECT count(1) as c from histories where  ex1 is null limit 1')
+    row = cursor.fetchone()
+    return  dict(row).get("c")
+
 def getUnqueryHistory(CUNT=15):
     # viewAt,oid,pageNo = getCurrentQueryProgress()
-    cursor.execute('SELECT * from "histories" where   (newest_cmt_time is   null or newest_cmt_time = 0)   order by view_at asc   limit ?',(CUNT,) )
+    cursor.execute('SELECT * from "histories" where  ex1 is null    order by view_at asc   limit ?',(CUNT,) )
 
     rows = cursor.fetchall()
     r = []
@@ -383,10 +394,6 @@ def getHistoryCount():
     row = cursor.fetchone()
     return  dict(row).get("c")
 
-def getUnQueryHistoryCount():
-    cursor.execute('SELECT count(1) as c from histories where newest_cmt_time == 0 or newest_cmt_time is NULL ')
-    row = cursor.fetchone()
-    return  dict(row).get("c")
 
 
 def getHistoryTimeRange():
@@ -556,22 +563,16 @@ def exportComent(all = True):
         f.write(jsonstr)
 
 def test():
-    r = getUndeletedComments(1748503266 - 7 * 24 * 3600 )
-
-    for i in r :
-        if i.get('oid') is None or i.get('rpid') is None:
-            printD('eeee')
-            continue
-        printD(i)
-        printD(i.get('oid'),i.get('rpid'),i.get('ctime'),i.get('msg'),i.get('flag'))
-        updateCommentFlag(i.get('oid'),i.get('rpid'),1)
-        break
-    conn.commit()
+    # cursor.execute('update histories set ex1 = "1" where newest_cmt_time is not null ')
+    # conn.commit()
+    pass 
 
 if __name__ == '__main__':
  
      initDB()
      exportComent(False)
+
+     printD(getUnQueryHistoryCount())
 
      test()
 
