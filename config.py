@@ -62,4 +62,31 @@ def getJsonConfig(name,NonIfNotExist=False):
 
 if __name__ == '__main__':
     ob = getJsonConfig('cfg')
+    enc=AEScoder(os.getenv('CFGKEY'))
+    try:
+        with open(  "data/cfg.json") as f:
+            cfgStr = f.read()
+            cfgEnc = enc.encrypt(cfgStr)
+            print("\n\n\n----------------------------------")
+            print("根据 cfg.json 明文生成 cfgA.json.en\n 如果以此为准，那么将cfgA.json.enc 覆盖 cfg.json.enc")
+            text_file = open("cfgA.json.enc", "w")
+            text_file.write(cfgEnc);
+            text_file.close()
+    except Exception as e :
+        print('err')
+    finally:
+        print('----------------------------')
+    
+
+    
+
+    print("\n\n\n----------------------------------")
+    print("根据 cfg.json.enc 远端密文生成 cfgA.json\n 如果以此为准，那么将cfgA.json 覆盖 cfg.json")
+
+    tmp2 = open(  "data/cfg.json.enc").read();
+    cfgDec = enc.decrypt(tmp2)
+
+    text_file = open("data/cfgA.json", "w")
+    text_file.write(cfgDec);
+    text_file.close()
 
