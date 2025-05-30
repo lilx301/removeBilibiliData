@@ -2,20 +2,20 @@
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
 name: pushback
 
-on:
-  inputs:
+inputs:
     cmt_msg:  # 定义一个输入参数 cmt_msg
       description: 'Commit message for the pushback action'
       required: false
       type: string
 
-jobs:
+runs:
     using: "composite"
     steps:
       - name: pushBack
         env:
             # 需要使用 GitHub Token 授权 push
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            TTTTTT: '123'
+            # GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
         run: |
               echo "msg:${{ inputs.cmt_msg }}"
@@ -23,5 +23,5 @@ jobs:
               git config user.email "githubci"
               git status
               git add .
-              git diff --cached --quiet || git commit -m "$(date +"%Y-%m-%d %H:%M:%S")  [ci skip] ${inputs.cmt_msg}"
+              git diff --cached --quiet || git commit -m "$(date +"%Y-%m-%d %H:%M:%S")  [ci skip] ${{inputs.cmt_msg }}"
               git push origin HEAD:master
