@@ -12,12 +12,14 @@ runs:
     using: "composite"
     steps:
       - name: pushBack
+        shell: bash
         env:
             # 需要使用 GitHub Token 授权 push
             TTTTTT: '123'
             # GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
         run: |
+              git status
               echo "msg:${{ inputs.cmt_msg }}"
               git config user.name "github-actions[bot]"
               git config user.email "githubci"
