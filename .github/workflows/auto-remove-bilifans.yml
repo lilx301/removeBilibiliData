@@ -60,7 +60,7 @@ jobs:
       env:
         CFGKEY: '${{ secrets.CFGKEY }}'
     - name: pushBack History
-      uses: ./.github/workflows/pushback.yml
+      uses: ./.github/actions/pushback
       with:
         cmt_msg: 'history '
 
@@ -71,7 +71,7 @@ jobs:
       env:
         CFGKEY: '${{ secrets.CFGKEY }}'
     - name: pushBack
-      uses: ./.github/workflows/pushback.yml
+      uses: ./.github/actions/pushback
       with:
         cmt_msg: 'Get all replies'
 
@@ -83,7 +83,7 @@ jobs:
       env:
         CFGKEY: '${{ secrets.CFGKEY }}'
     - name: pushBack
-      uses: ./.github/workflows/pushback.yml
+      uses: ./.github/actions/pushback
       with:
         cmt_msg: 'Remove Replies'
 
