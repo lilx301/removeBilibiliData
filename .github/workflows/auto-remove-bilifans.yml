@@ -51,28 +51,46 @@ jobs:
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt --target=./pylib; fi
         ls -al 
-    - name: Delete
+    - name: Delete fans and Get History
       continue-on-error: true
       run: |
         python3 -u refreshCookie.py
         python3 -u deleteFans.py
-        python3 -u getAllReplies.py
+        python3 -u getAllReplies.py 1
+      env:
+        CFGKEY: '${{ secrets.CFGKEY }}'
+    - name: pushBack History
+      uses: ./.github/workflows/pushback.yml
+      with:
+        cmt_msg: 'history '
+
+    - name: getAllReplies
+      continue-on-error: true
+      run: |
+        python3 -u getAllReplies.py 2
+      env:
+        CFGKEY: '${{ secrets.CFGKEY }}'
+    - name: pushBack
+      uses: ./.github/workflows/pushback.yml
+      with:
+        cmt_msg: 'Get all replies'
+
+    - name: Delete Replies
+      continue-on-error: true
+      run: |
+        date +"%Y-%m-%d %H:%M:%S"
         python3 -u deleteReplies.py
       env:
         CFGKEY: '${{ secrets.CFGKEY }}'
-
     - name: pushBack
-      env:
-          # 需要使用 GitHub Token 授权 push
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      uses: ./.github/workflows/pushback.yml
+      with:
+        cmt_msg: 'Remove Replies'
 
-      run: |
-            git config user.name "github-actions[bot]"
-            git config user.email "githubci"
-            git status
-            git add .
-            git diff --cached --quiet || git commit -m "$(date +"%Y-%m-%d %H:%M:%S")  [ci skip]"
-            git push origin HEAD:master
+     
+
+    
+    
 
     - name: Rename workflow file
       continue-on-error: true

@@ -1,0 +1,28 @@
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+name: pushback
+
+on:
+  workflow_call:  # 必须这样定义，表示这是一个可被调用的 workflow
+    inputs:
+      cmt_msg:  # 定义一个输入参数 cmt_msg
+        description: 'Commit message for the pushback action'
+        required: false
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: pushBack
+        env:
+            # 需要使用 GitHub Token 授权 push
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+        run: |
+              git config user.name "github-actions[bot]"
+              git config user.email "githubci"
+              git status
+              git add .
+              git diff --cached --quiet || git commit -m "$(date +"%Y-%m-%d %H:%M:%S")  [ci skip] ${inputs.cmt_msg}"
+              git push origin HEAD:master

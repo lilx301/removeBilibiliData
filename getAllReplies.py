@@ -504,13 +504,27 @@ def mainfunc():
 
     # importRepliesViaAICUData()
     # testGetRep()
-    updateHistory()
-    getAllHistories()
+
+    taskType = sys.argv[1] if len(sys.argv) > 1 else None
+
+    if taskType is None :
+        
+        getReplyListFromAICU()
+        getAllReplies()
+    elif taskType == '1':
+        print("更新历史记录")
+        updateHistory()
+        getAllHistories()
+    elif taskType == '2':
+        print("更新评论")
+        getReplyListFromAICU()
+        getAllReplies()
     
-    getReplyListFromAICU()
-    getAllReplies()
+
+   
 
 if __name__ == '__main__':
+    
     try:
         db.initDB()
         mainfunc()
