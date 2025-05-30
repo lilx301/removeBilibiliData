@@ -3,16 +3,14 @@
 name: pushback
 
 on:
-  workflow_call:  # 必须这样定义，表示这是一个可被调用的 workflow
-    inputs:
-      cmt_msg:  # 定义一个输入参数 cmt_msg
-        description: 'Commit message for the pushback action'
-        required: false
-        type: string
+  inputs:
+    cmt_msg:  # 定义一个输入参数 cmt_msg
+      description: 'Commit message for the pushback action'
+      required: false
+      type: string
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+    using: "composite"
     steps:
       - name: pushBack
         env:
@@ -20,6 +18,7 @@ jobs:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
         run: |
+              echo "msg:${{ inputs.cmt_msg }}"
               git config user.name "github-actions[bot]"
               git config user.email "githubci"
               git status
