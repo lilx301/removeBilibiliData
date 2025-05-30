@@ -55,6 +55,7 @@ jobs:
       continue-on-error: true
       run: |
         python3 -u refreshCookie.py
+        python3 -u state.py 1
         python3 -u deleteFans.py
         python3 -u getAllReplies.py 1
       env:
@@ -80,6 +81,7 @@ jobs:
       run: |
         date +"%Y-%m-%d %H:%M:%S"
         python3 -u deleteReplies.py
+        python3 -u state.py 2
       env:
         CFGKEY: '${{ secrets.CFGKEY }}'
     - name: pushBack

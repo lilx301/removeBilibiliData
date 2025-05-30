@@ -69,9 +69,8 @@ if __name__ == '__main__':
             cfgEnc = enc.encrypt(cfgStr)
             print("\n\n\n----------------------------------")
             print("根据 cfg.json 明文生成 cfgA.json.en\n 如果以此为准，那么将cfgA.json.enc 覆盖 cfg.json.enc")
-            text_file = open("cfgA.json.enc", "w")
-            text_file.write(cfgEnc);
-            text_file.close()
+            with open("data/cfgA.json.enc", "w") as text_file:
+                text_file.write(cfgEnc)
     except Exception as e :
         print('err')
     finally:
@@ -89,4 +88,6 @@ if __name__ == '__main__':
     text_file = open("data/cfgA.json", "w")
     text_file.write(cfgDec);
     text_file.close()
+
+ 
 

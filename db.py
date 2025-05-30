@@ -368,6 +368,15 @@ def getUndeletedComments(timeStamp,COUNT = 100):
 
 
 
+def getAllCommentCount():
+    cursor.execute('SELECT count(1) as c from comments  limit 1')
+    row = cursor.fetchone()
+    return dict(row).get("c")
+
+def getDeleteCommentCount():
+    cursor.execute('SELECT count(1) as c from comments where flag is not null and  flag != 0 limit 1')
+    row = cursor.fetchone()
+    return dict(row).get("c")
 
 def getHistoryCount():
     cursor.execute('SELECT count(1) as c from histories ')
