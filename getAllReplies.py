@@ -446,12 +446,13 @@ def getReplyListFromAICU():
     isFullQuery = False
     print("查询AICU评论",nowSec - timePre)
     if timePre is not None and    nowSec - timePre > 15 * 60 * 60 * 24:
-        print("最近15天已经查询过了，增量查询")
+        print("15 天全量查询一次")
         isFullQuery = True
     else:
+        print("增量查询")
         pass
     
-    print("最近15天没有查询过，增量? ",isFullQuery)
+    
     
     db.setConfig('last-time-query-aicu2', intV=nowSec)
 
