@@ -71,7 +71,7 @@ jobs:
             git config user.email "githubci"
             git status
             git add .
-            git diff --cached --quiet || git commit -m "[ci skip]"
+            git diff --cached --quiet || git commit -m "$(date +"%Y-%m-%d %H:%M:%S")  [ci skip]"
             git push origin HEAD:master
 
     - name: Rename workflow file
