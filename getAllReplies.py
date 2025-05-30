@@ -283,11 +283,11 @@ def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
             oldestTimeStr = viewAtStr.split(';')[0]
             oldestTime = int(oldestTimeStr)
             # 给一个7h 的debug，防止两次 查看同一次
-            if timeLst is not None and timeLst < oldestTime - 7  *  3600:
+            if timeLst is not None and timeLst < oldestTime - 5  *  3600:
                 print("早于观看时间的评论忽略吧22...")
                 break
         else:
-            if timeLst is not None and historyItem.get('view_at') is not None and timeLst < historyItem.get('view_at') - 7  *  3600:
+            if timeLst is not None and historyItem.get('view_at') is not None and timeLst < historyItem.get('view_at') - 5  *  3600:
                 print("早于观看时间的评论忽略吧...")
                 break
 
