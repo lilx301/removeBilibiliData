@@ -530,14 +530,17 @@ def exportComent(all = True):
         mp['ctime'] = tool.timeStamp2Str(mp.get('ctime'))
         arr.append(mp)
 
-    cursor.execute("select bvid ,title,view_at from histories  order by view_at desc  ")
-    hlist  = cursor.fetchall()
+
     arr2 = []
-    printD("历史记录数量",len(hlist))
-    for itm in hlist:
-        mp = dict(itm)
-        mp['ctime'] = tool.timeStamp2Str(mp.get('view_at'))
-        arr2.append(mp)
+    if all:
+        cursor.execute("select bvid ,title,view_at from histories  order by view_at desc  ")
+        hlist  = cursor.fetchall()
+        
+        printD("历史记录数量",len(hlist))
+        for itm in hlist:
+            mp = dict(itm)
+            mp['ctime'] = tool.timeStamp2Str(mp.get('view_at'))
+            arr2.append(mp)
     
     jsonstr = json.dumps({"list":arr,'history':arr2,'a_rep':len(arr),'a_his':len(arr2)},indent=4,ensure_ascii=False)
     with open('data/export.json','w') as f:
