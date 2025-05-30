@@ -294,7 +294,7 @@ def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
         
         
         pageIdx += 1
-        time.sleep(3.5 + random.random() * 1)
+        time.sleep(2 + random.random() * 1)
 
     if firstTime is not None and firstTime > 0 :
         setLastCmtTime(oid,firstTime)
