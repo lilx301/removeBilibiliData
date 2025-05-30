@@ -17,6 +17,8 @@ from tool import ymd2Stamp
 from tool import getObjWithKeyPath
 import db
 
+# 查询容差，两次运行4h间隔，这里设置5h
+Query_Tolerance = 5 * 3600
 
 UID = refreshCookie.getUid()
 
@@ -181,7 +183,7 @@ def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
 
     oid = f"{historyItem.get('oid')}"
 
-    print(f"getReplies[{seq}] {bt} {timeStamp2Str(historyItem.get('view_at'))[0:-5]}xx",)
+    print(f"getReplies[{seq}] {bt} {timeStamp2Str(historyItem.get('view_at') -  random.randint(1000,Query_Tolerance))}",)
     printD(f"{oid},{historyItem.get('title')}   \t{timeStamp2Str(historyItem.get('view_at'))}")
 
     NetRetryMax = 5
@@ -283,11 +285,11 @@ def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
             oldestTimeStr = viewAtStr.split(';')[0]
             oldestTime = int(oldestTimeStr)
             # 给一个7h 的debug，防止两次 查看同一次
-            if timeLst is not None and timeLst < oldestTime - 5  *  3600:
+            if timeLst is not None and timeLst < oldestTime - Query_Tolerance:
                 print("早于观看时间的评论忽略吧22...")
                 break
         else:
-            if timeLst is not None and historyItem.get('view_at') is not None and timeLst < historyItem.get('view_at') - 5  *  3600:
+            if timeLst is not None and historyItem.get('view_at') is not None and timeLst < historyItem.get('view_at') - Query_Tolerance:
                 print("早于观看时间的评论忽略吧...")
                 break
 
