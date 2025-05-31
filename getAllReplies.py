@@ -10,7 +10,7 @@ import random
 import datetime
 import calendar
 import requests
-from debug import printD
+from debug import printD, isDebug
 
 from tool import timeStamp2Str
 from tool import ymd2Stamp
@@ -430,7 +430,10 @@ def testGetRep():
 
 # 获取屏幕列表
 def getReplyListFromAICUAtPage(idx,uid=UID):
+
     url = f"https://n.kr7y.workers.dev/https://api.aicu.cc/api/v3/search/getreply?uid={uid}&pn={idx}&ps=300&mode=0&keyword="
+    if isDebug():
+        url = f"https://api.aicu.cc/api/v3/search/getreply?uid={uid}&pn={idx}&ps=300&mode=0&keyword="
     headers = {
         'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36"
     }
@@ -511,8 +514,8 @@ def mainfunc():
 
     if taskType is None :
         
-        getReplyListFromAICU()
-        getAllReplies()
+        print("没有参数 1 更新历史记录，2 更新评论")
+
     elif taskType == '1':
         print("更新历史记录")
         updateHistory()
