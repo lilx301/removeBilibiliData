@@ -281,7 +281,7 @@ def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
 
         # 早于观看时间段评论忽略，这样可能一个视频多次观看会遗漏，但是，就这样吧，希望不会有太多，aicu 能兜底的吧
         viewAtStr = historyItem.get('ex2')
-        if viewAtStr is not None and len(viewAtStr) > 0:
+        if 0 and viewAtStr is not None and len(viewAtStr) > 0:
             oldestTimeStr = viewAtStr.split(';')[0]
             oldestTime = int(oldestTimeStr)
             # 给一个7h 的debug，防止两次 查看同一次
