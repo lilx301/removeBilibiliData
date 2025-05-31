@@ -9,11 +9,17 @@ from Crypto.Util.Padding import unpad
 
 
 class AEScoder():
-    def __init__(self,key):
-        md = hashlib.sha256();
-        md.update(key.encode('utf-8'))                   #制定需要加密的字符串
-        realkey = md.hexdigest()[:32]
-        self.__key = realkey.encode("utf-8");
+    def __init__(self,key,israw=0):
+        realkey = None
+        
+        if israw:
+            realkey = key
+        else: 
+            md = hashlib.sha256();  
+            md.update(key.encode('utf-8'))                   #制定需要加密的字符串
+            realkey = md.hexdigest()[:32]
+        self.__key = realkey.encode("utf-8")
+        print('kkkkk',len(self.__key))
     # AES加密
     def encrypt(self,data):
         BS = 16

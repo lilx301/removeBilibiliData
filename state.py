@@ -11,21 +11,46 @@ from debug import printD
 import config
 import urllib.parse
 
-
+from aes  import AEScoder
 import requests
 from tool import timeStamp2Str
+import json
 
 TGBOT = config.getJsonConfig('cfg').get('TGBOT')
+BARKURL = config.getJsonConfig('cfg').get('BARK_URL')
+BARKKEY = config.getJsonConfig('cfg').get('BARK_KEY')
 
 def sendMsg(msg):
-    if TGBOT is None or TGBOT == '':
+    
+    if BARKURL is not None and BARKKEY is not None:
+        printD(BARKKEY,BARKURL)
+        ENC = AEScoder(BARKKEY,israw=1 )
+        
+        msg=f"{msg}\n{timeStamp2Str(time.time())}"
+
+        body = {
+            "body":msg,
+            "sound": "birdsong"
+        }        
+
+        msgE = ENC.encrypt(json.dumps(body))
+        printD(msgE)
+        
+
+        requests.post(BARKURL,data={
+            'ciphertext':msgE,
+            'sound':"birdsong"
+        })
+
+    if  TGBOT is not None :
         print("没有配置 TGBOT")
-        return
+        requests.post(TGBOT,data={
+            'text':f"{msg}\n{timeStamp2Str(time.time())}",
+        })
+        
 
     
-    requests.post(TGBOT,data={
-        'text':f"{msg}\n{timeStamp2Str(time.time())}",
-    })
+    
      
 
 def getCurrentState():
@@ -82,7 +107,7 @@ def mainfunc():
 
         if historyCount0 == historyCount1 and commentCount0 == commentCount1 and delCount0 == delCount1:
             print("没有变化")
-            return
+            # return
 
         msg = f'''
 浏览记录: + {'None' if historyCount0 == -1 or historyCount1 == -1 else historyCount1 - historyCount0 : 5d}
