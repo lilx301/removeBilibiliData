@@ -2,15 +2,15 @@ import re
 import time
 import sys
 import os
-
+import json
 sys.path.insert(0, os.path.abspath("pylib"))
 
 import db
-from debug import printD 
+from debug import printD ,isDebug
 
 import config
 
-from notice import sendMsg
+import notice
     
      
 
@@ -29,9 +29,14 @@ def getCurrentState():
     }
 
     pass
-def nofiy(oldState, newState):
-    print("通知变化")
-    pass
+
+def  getNewDetail(time):
+    arr  = db.getCommentsAfterTime(time)
+    return arr
+
+    
+
+
 def mainfunc():
 
     # importRepliesViaAICUData()
@@ -67,9 +72,13 @@ def mainfunc():
         delCount0 = cfg0.get('delCount',-1)
         delCount1 = cfg2.get('delCount',-1)
 
+
+        
+
         if historyCount0 == historyCount1 and commentCount0 == commentCount1 and delCount0 == delCount1:
             print("没有变化")
-            return
+            if not isDebug():
+                return
 
         msg = f'''
 浏览记录: + {'None' if historyCount0 == -1 or historyCount1 == -1 else historyCount1 - historyCount0 : 5d}
@@ -77,7 +86,25 @@ def mainfunc():
 删除数量: - {'None' if delCount0 == -1 or delCount1 == -1 else delCount1 - delCount0: 5d}
         '''
         print(msg)
-        sendMsg(msg)
+        notice.sendBarkMsg(msg)
+
+        if len(arrCmt) > 0:
+            arrCmt = getNewDetail(cfg0.get('now', int(time.time())-60))
+            arrCmt1 = [cmt for cmt in arrCmt if cmt['flag'] == 1]  
+            arrCmt0 = [cmt for cmt in arrCmt if cmt['flag'] == 0 or cmt['flag'] is None]
+            msgDetail = f'新评论：{len(arrCmt0)}\n'
+            for cmt in arrCmt1:
+                msgDetail += f"[{cmt['title']}]\n\t{cmt['msg']}\n\n"
+
+
+
+            msgDetail += f'\n--------\n删除评论：{len(arrCmt0)}\n'
+            for cmt in arrCmt0:
+                # printD("新评论:", cmt)
+                msgDetail += f"[{cmt['title']}]\n\tR:{cmt['msg']}\n\n"
+
+            notice.sendTgMsg(msgDetail)
+
         
    
 
@@ -86,6 +113,8 @@ if __name__ == '__main__':
     try:
         db.initDB()
         mainfunc()
+
+        
     except KeyboardInterrupt as e:
         print(e)
     else:
