@@ -20,6 +20,7 @@ import config
 from debug import printD
 import db
 import tool
+from pushback import pushback
 
 
 jsonOBJ = config.getJsonConfig('cfg')
@@ -154,7 +155,7 @@ def checkLoopShoudStop(list2Del,preList):
 
 
 def startDelete(timeStamp):
-    global GCOUNTALL
+    global GCOUNTALL,GCOUNT
     STOP=0
 
     GCOUNTALL= db.getUndeletedCommentsCount(timeStamp)
@@ -198,9 +199,9 @@ def startDelete(timeStamp):
         
         
     
-        
-
-
+        if GCOUNT % 150 == 149:
+            pushbackMsg = f"删除评论数量：{GCOUNT} / {GCOUNTALL}"
+            pushback(pushbackMsg)
 
 
 
