@@ -287,8 +287,6 @@ def getAllLikeMeMsg():
 
 
         
-        if random.random() < 0.8:
-            break
 
         time.sleep(1 + random.random() )  # 避免请求过快
 
@@ -352,9 +350,6 @@ def getAllReply2MeMsg():
 
 
 
-        
-        if random.random() < 0.8:
-            break
         time.sleep(1 + random.random() )  # 避免请求过快
 
     if newTime > preTime:
