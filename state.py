@@ -9,47 +9,8 @@ import db
 from debug import printD 
 
 import config
-import urllib.parse
 
-from aes  import AEScoder
-import requests
-from tool import timeStamp2Str
-import json
-
-TGBOT = config.getJsonConfig('cfg').get('TGBOT')
-BARKURL = config.getJsonConfig('cfg').get('BARK_URL')
-BARKKEY = config.getJsonConfig('cfg').get('BARK_KEY')
-
-def sendMsg(msg):
-    
-    if BARKURL is not None and BARKKEY is not None:
-        printD(BARKKEY,BARKURL)
-        ENC = AEScoder(BARKKEY,israw=1 )
-        
-        msg=f"{msg}\n{timeStamp2Str(time.time())}"
-
-        body = {
-            "body":msg,
-            "sound": "birdsong"
-        }        
-
-        msgE = ENC.encrypt(json.dumps(body))
-        printD(msgE)
-        
-
-        requests.post(BARKURL,data={
-            'ciphertext':msgE,
-            'sound':"birdsong"
-        })
-
-    if  TGBOT is not None :
-        print("没有配置 TGBOT")
-        requests.post(TGBOT,data={
-            'text':f"{msg}\n{timeStamp2Str(time.time())}",
-        })
-        
-
-    
+from notice import sendMsg
     
      
 
@@ -64,6 +25,7 @@ def getCurrentState():
         'historyCount': historyCount,
         'commentCount': commentCount,
         'delCount': delCount,
+        'now': int(time.time())
     }
 
     pass
@@ -116,7 +78,7 @@ def mainfunc():
         '''
         print(msg)
         sendMsg(msg)
-         
+        
    
 
 if __name__ == '__main__':
