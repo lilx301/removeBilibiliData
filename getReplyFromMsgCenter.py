@@ -275,11 +275,7 @@ def getAllLikeMeMsg():
         printD(f"Cursor Like {PAGE }: {timeStamp2Str(cursor.get('time'))}\n{cursor}" ) 
         if not cursor or cursor.get('is_end') == True:
             printD("Ending like me retrieval.",cursor)
-            if isDebug():
-                # 结束，删掉进度
-                config.removeConfig(keyForCusor)
             printD("No more LikeMe messages found.")
-            db.setConfig(LikeTimeLine, intV=newTime)
             break
 
         if newTime == 0:
@@ -291,9 +287,13 @@ def getAllLikeMeMsg():
 
 
         
-        
+        if random.random() < 0.3:
+            break
+
         time.sleep(1 + random.random() )  # 避免请求过快
 
+    if newTime > preTime:
+        db.setConfig(PreRepTimeKey, intV=newTime)
 
 
 
@@ -321,13 +321,17 @@ def getAllReply2MeMsg():
 
     newTime = 0
     while True:
-        print("AtMe Page:", PAGE)
-        PAGE += 1
+        
         if cursor is None:
             cursor = getMsgReplyMe()
         else:
             cursor = getMsgReplyMe(cursor.get('id'), cursor.get('time'))
         
+        print("AtMe Page:", PAGE,preTime,getObjWithKeyPath(cursor, 'time'),preTime < getObjWithKeyPath(cursor, 'time') ,newTime)
+        PAGE += 1
+
+
+
         config.saveJsonConfig(cursor, keyForCusor) if isDebug() else None
         printD(f"Cursor Rep {PAGE}: {timeStamp2Str(cursor.get('time'))} \n{cursor}" ) 
         if not cursor or cursor.get('is_end') == True:
@@ -336,7 +340,7 @@ def getAllReply2MeMsg():
                 printD("Ending @me replies retrieval.",cursor)
                 config.removeConfig(keyForCusor)
             printD("No more @me replies found.")
-            db.setConfig(PreRepTimeKey, intV=newTime)
+            
             break
 
         if newTime == 0:
@@ -349,9 +353,14 @@ def getAllReply2MeMsg():
 
 
         
-
+        if random.random() < 0.8:
+            break
         time.sleep(1 + random.random() )  # 避免请求过快
 
+    if newTime > preTime:
+        db.setConfig(PreRepTimeKey, intV=newTime)
+        # 更新配置
+    
 
         
         

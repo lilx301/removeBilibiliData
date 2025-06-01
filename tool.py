@@ -27,6 +27,8 @@ def ymd2Stamp(date_str: str, fmt: str = "%Y-%m-%d", ms: bool = False) -> int:
     return int(timestamp * 1000) if ms else int(timestamp)
 
 def  getObjWithKeyPath(obj,keypath):
+    if obj is None or keypath is None:
+        return None
     arr = keypath.split('.')
     sitem = obj
     for name in arr :
