@@ -10,7 +10,17 @@ import requests
 import base64
 import json
 from aes import AEScoder 
- 
+
+def removeConfig(name):
+    encFile = f"data/{name}.json.enc"
+    if os.path.exists(encFile):
+        try:
+            os.remove(encFile)
+            print(f"已删除配置文件: {encFile}")
+        except Exception as e:
+            print(f"删除配置文件失败: {e}")
+    else:
+        print(f"配置文件不存在: {encFile}")
 def saveJsonConfig(jsonOBJ,name):
     jsonStrNew = json.dumps(jsonOBJ, indent=4,ensure_ascii=False)
 

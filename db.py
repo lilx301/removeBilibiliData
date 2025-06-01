@@ -580,9 +580,16 @@ def exportComent(all = True):
     with open('data/export.json','w') as f:
         f.write(jsonstr)
 
+def getCommentsCountByType(type):
+
+    cursor.execute(f'SELECT count(1) as c FROM comments WHERE ex1 = "{type}"')
+
+    return dict(cursor.fetchone()).get('c', 0)
+
 def test():
-    cursor.execute('update histories set ex1 = "1" where view_at   <  1748537573 ')
-    conn.commit()
+    cursor.execute('SELECT count(1) as c  FROM comments WHERE ex1 = "AtMe"')
+    c = cursor.fetchone()
+    printD("AtMe 评论数量",dict(c).get('c'))
     pass 
 
 def getCommentsAfterTime(timeSec):
