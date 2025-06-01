@@ -269,14 +269,18 @@ def insertCommentItem(item):
 
     exsist, _ = _checkRowExsit(key,'comments','key')
     if exsist:
+        printD("----------------------评论已存在，跳过插入")
         return
     
-      # key oid    , bvid  , title  , rpid      , msg     , ctime  , deltime  , flag  ,   json     
+      # key oid    , bvid  , title  , rpid      , msg     , ctime  , deltime  , flag  ,   json  
+
+    jsonStr = item.get('json') if item.get('json') is not None else json.dumps(item, indent=4,ensure_ascii=False)   
     cursor.execute('''
         INSERT OR IGNORE INTO comments (key, oid    , bvid  , title  , rpid      , msg     , ctime  , deltime  , flag  , ex1 ,ex2,ex3,  json  ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
     ''',(key,oidStr,item.get('bvid'),item.get('title'),rpidStr,item.get('msg'),item.get('ctime'),item.get('delTime'),item.get('flag'),
          item.get('ex1'),item.get('ex2'),item.get('ex3'),
-         json.dumps(item, indent=4,ensure_ascii=False)))
+         jsonStr
+         ))
     
     conn.commit()
 
@@ -327,14 +331,10 @@ def updateCommentFlag(oid,rpid,flag):
     if flag == 1:
         printD('标记为删除')
 
-    printD('before:',cursor.rowcount)
+    printD('row effect:',cursor.rowcount)
 
     conn.commit()
 
-
-    cursor.execute('SELECT * FROM "comments" WHERE key = ?', (key,))
-    after = cursor.fetchone()
-    printD('after:', dict(after)  if after is not None else None)
 
 
 def updateQueryCommentCtx(time_at,oid,pageIdx):
@@ -587,9 +587,9 @@ def getCommentsCountByType(type):
     return dict(cursor.fetchone()).get('c', 0)
 
 def test():
-    cursor.execute('SELECT count(1) as c  FROM comments WHERE ex1 = "AtMe"')
-    c = cursor.fetchone()
-    printD("AtMe 评论数量",dict(c).get('c'))
+    cursor.execute('delete FROM comments WHERE ex1 = "AtMe" or ex1 = "LikeMe"')
+    conn.commit()
+    printD("AtMe 评论数量",cursor.rowcount)
     pass 
 
 def getCommentsAfterTime(timeSec):

@@ -63,7 +63,7 @@ def deleteReplyItem(replyItem):
 
     url = "https://api.bilibili.com/x/v2/reply/del"
     data = {
-        'type': '1' if  replyItem.get('ex2') is None else replyItem['ex2'],
+        'type': '1' if  replyItem.get('ex2') is None else f"{replyItem['ex2']}",
         'oid': replyItem['oid'],
         'rpid': replyItem['rpid'],
         'csrf': csrf,
@@ -110,7 +110,9 @@ def deleteReplyItem(replyItem):
         return 1
 
     else:
-        print("移除失败:", re)
+
+        print("移除失败:", re )
+        printD("移除失败:",replyItem )
         return 0
 
 
@@ -171,7 +173,7 @@ def startDelete(timeStamp):
                     printD('删除评论', item.get('msg'), '时间:',   tool.timeStamp2Str(item.get('ctime')))
                     i = deleteReplyItem(item)
                     if i == 1:
-                        printD('删除成功', item.get('msg'))
+                        printD('删除成功', item.get('msg'),item.get('bvid'))
                     if i == -1:
                         continue
 
@@ -200,7 +202,7 @@ if __name__ == '__main__':
         nowSecStamp = int(time.time())
     # 删除时间超过7天的评论
         print('删除时间超过7天的评论')
-        startDelete(nowSecStamp - 24 * 3600 * 7)
+        startDelete(nowSecStamp - 24 * 3600 * 4)
     except KeyboardInterrupt as e:
         printD(e)
     else:

@@ -23,6 +23,9 @@ Query_Tolerance = 5 * 3600
 UID = refreshCookie.getUid()
 
 
+PreRepTimeKey = 'PreRepTimeKeyV2'
+LikeTimeLine = 'LikeTimeLineV2'
+
 # 查询历史记录
 headers = {
 
@@ -44,7 +47,63 @@ def getBvidFromUri(uri):
         return uri.split('/')[-1].split('?')[0]
     else:
         return uri
+
+# oid，typecode
+def getOidFromLikeItem(item):
+    """
+    从item中获取oid
+    """
+    if not item:
+        return None,None
+
+
+
+    # bilibili://video/123?page=0&comment_root_id=rpid
+    # let oid be 123
+    native_uri = getObjWithKeyPath(item, 'item.native_uri')
+    if native_uri and native_uri.startswith('bilibili://video/'):
+        native_uri = native_uri.split('bilibili://video/')[1]
+        oid = native_uri.split('?')[0].split('&')[0]
+        return oid,None
     
+    if native_uri and native_uri.startswith('bilibili://comment/detail'):
+        rpid = getObjWithKeyPath(item, 'item.item_id')
+        # bilibili://comment/detail/xx/oid/rpid...
+        try:
+            arr2 = native_uri.split('/' + rpid)[0].split('/')
+            return arr2[-1],arr2[-2]  # 返回oid和typecode
+        except Exception as e:
+            pass
+    
+
+    return None,None
+
+def getOidFromReplyItem(item):
+    if not item:
+        return None,None
+
+
+
+    # bilibili://video/123?page=0&comment_root_id=rpid
+    # let oid be 123
+    native_uri = getObjWithKeyPath(item, 'item.native_uri')
+    if native_uri and native_uri.startswith('bilibili://video/'):
+        native_uri = native_uri.split('bilibili://video/')[1]
+        oid = native_uri.split('?')[0].split('&')[0]
+        return oid,None
+    
+    if native_uri and native_uri.startswith('bilibili://comment/detail'):
+        rpid = getObjWithKeyPath(item, 'item.item_id')
+        # bilibili://comment/detail/xx/oid/rpid...
+        try:
+            arr2 = native_uri.split('/' + rpid)[0].split('/')
+            return arr2[-1],arr2[-2]  # 返回oid和typecode
+        except Exception as e:
+            pass
+    
+
+    return None,None
+
 def getMsgReplyMe(id = None,reply_time = None):
     """
     获取消息中心的@我回复
@@ -56,12 +115,14 @@ def getMsgReplyMe(id = None,reply_time = None):
         url = f'https://api.bilibili.com/x/msgfeed/reply?id={id}&reply_time={reply_time}&platform=web&build=0&mobi_app=web'
 
     try:
-        for i in range(3):
+        for i in range(5):
             try:
                 res = session.get(url, headers=headers,proxies= {},timeout=5)
                 break
             except Exception as e:
-                time.sleep(2 + random.random() * 3)  # 避免请求过快
+                time.sleep(3 + random.random() )  # 避免请求过快
+        
+
         
         res.encoding = 'utf-8'
         res.raise_for_status()
@@ -76,16 +137,20 @@ def getMsgReplyMe(id = None,reply_time = None):
 
         for item in items:
             reply_time = item.get('reply_time', 0)
+            oid = getObjWithKeyPath(item, 'item.subject_id')
 
             title = getObjWithKeyPath(item, 'item.title')
-            oid = getObjWithKeyPath(item, 'item.subject_id')
+            
             rpid = getObjWithKeyPath(item, 'item.target_id')
             msg = getObjWithKeyPath(item, 'item.target_reply_content')
+            
             bvid = getBvidFromUri(getObjWithKeyPath(item, 'item.uri')) # 链接当做bvid
             if not  msg or msg == '':
                 msg = title # 本身是root reply 
                 title = None
-            printD(f"Processing reply: {timeStamp2Str(reply_time)} \n{title}, oid: {oid}, rpid: {rpid}, msg: {msg} {timeStamp2Str(reply_time)}")
+            printD(f"R {title}  msg: {msg} {timeStamp2Str(reply_time)}")
+
+            
 
 
             itmInsert = {
@@ -95,7 +160,10 @@ def getMsgReplyMe(id = None,reply_time = None):
                 "title":title,
                 "msg":msg,
                 "ex1":"AtMe",
-                "ctime":reply_time # 就把回复时间当做ctime吧
+                "ex2": getObjWithKeyPath(item, 'item.business_id'),  # 添加typeCode
+                "ctime":reply_time, # 就把回复时间当做ctime吧
+
+                "json": json.dumps(item, ensure_ascii=False),  # 将item数据存储为JSON字符串 有些字段不知道什么意思，都存吧
             }
 
             # 尝试插入 
@@ -130,7 +198,7 @@ def getLikeMeMsg(id = None,like_time = None):
             res = session.get(url, headers=headers,proxies= {},timeout=5)
             break
         except Exception as e:
-            time.sleep(2 + random.random() * 3)  # 避免请求过快
+            time.sleep(3 + random.random() )  # 避免请求过快
         
     res.encoding = 'utf-8'
     res.raise_for_status()
@@ -152,7 +220,10 @@ def getLikeMeMsg(id = None,like_time = None):
         msg = itmData.get('title')
         bvid = getBvidFromUri(itmData.get('uri'))
         rpid = itmData.get('item_id')
-        oid = itm.get('id')
+        oid,typeCode = getOidFromLikeItem(itm)  # 获取oid
+        if not oid:
+            print("No oid found in item, skipping.")
+            continue
 
         db.insertCommentItem({
             "rpid": rpid,
@@ -161,6 +232,8 @@ def getLikeMeMsg(id = None,like_time = None):
             # "title": msg,  # Re-enable the title field
             "msg": msg,
             "ex1": "LikeMe",
+            'ex2': typeCode,  # 添加typeCode
+            "json": json.dumps(itm, ensure_ascii=False),  # 将item数据存储为JSON字符串
             "ctime": itmData.get('ctime', int(time.time()))  # 使用like_time或当前时间
         })
         printD(msg, bvid, )
@@ -183,7 +256,7 @@ def getAllLikeMeMsg():
     cursor =  config.getJsonConfig(keyForCusor, NonIfNotExist=True) if isDebug() else None
     PAGE = 1
 
-    preTime = db.getConfig("get_like_me_msg_pre_time2" )
+    preTime = db.getConfig(LikeTimeLine )
 
     preTime = 0 if preTime is None else preTime
 
@@ -199,8 +272,9 @@ def getAllLikeMeMsg():
         if isDebug():
             config.saveJsonConfig(cursor, keyForCusor)
         
-        printD(f"Cursor: {cursor}") 
+        printD(f"Cursor Like {PAGE }: {timeStamp2Str(cursor.get('time'))}\n{cursor}" ) 
         if not cursor or cursor.get('is_end') == True:
+            printD("Ending like me retrieval.",cursor)
             if isDebug():
                 # 结束，删掉进度
                 config.removeConfig(keyForCusor)
@@ -217,10 +291,12 @@ def getAllLikeMeMsg():
 
         
         
-        time.sleep(1 + random.random() * 3)  # 避免请求过快
+        time.sleep(1 + random.random() )  # 避免请求过快
 
-    if newTime is not None and newTime > preTime:
-        db.setConfig("get_like_me_msg_pre_time2", intV=newTime)
+
+
+    if newTime is not None and newTime > preTime :
+        db.setConfig(LikeTimeLine, intV=newTime)
 
 def getAllReply2MeMsg():
     """
@@ -232,9 +308,13 @@ def getAllReply2MeMsg():
     today=timeStamp2Str(int(time.time()))[0:10].replace('-', '')
     keyForCusor = f'localcfg_Rep_{today}'
     cursor = isDebug() and config.getJsonConfig(keyForCusor, NonIfNotExist=True) or None
-    PAGE = 1
+    PAGE = 0
 
-    preTime = db.getConfig("get_at_me_msg_pre_time2" )
+
+    printD(f"Cursor for @me: {cursor}")
+    # 
+
+    preTime = db.getConfig(PreRepTimeKey )
 
     preTime = 0 if preTime is None else preTime
 
@@ -248,10 +328,11 @@ def getAllReply2MeMsg():
             cursor = getMsgReplyMe(cursor.get('id'), cursor.get('time'))
         
         config.saveJsonConfig(cursor, keyForCusor) if isDebug() else None
-        printD(f"Cursor: {cursor}") 
+        printD(f"Cursor Rep {PAGE}: {timeStamp2Str(cursor.get('time'))} \n{cursor}" ) 
         if not cursor or cursor.get('is_end') == True:
             if isDebug():
                 # 结束，删掉进度
+                printD("Ending @me replies retrieval.",cursor)
                 config.removeConfig(keyForCusor)
             printD("No more @me replies found.")
             break
@@ -264,12 +345,13 @@ def getAllReply2MeMsg():
             break
 
 
+
         
         
-        time.sleep(1 + random.random() * 3)  # 避免请求过快
+        time.sleep(1 + random.random() )  # 避免请求过快
 
     if newTime is not None and newTime > preTime:
-        db.setConfig("get_at_me_msg_pre_time2", intV=newTime)
+        db.setConfig(PreRepTimeKey, intV=newTime)
         
 
 if __name__ == '__main__':
@@ -277,9 +359,16 @@ if __name__ == '__main__':
     try:
         db.initDB()
 
+        
+        getAllReply2MeMsg()
+        if not isDebug():
+            pushback("回复通知") 
+        getAllLikeMeMsg()
+
+        if not isDebug():
+            pushback("点赞通知") 
         print(db.getCommentsCountByType("AtMe"))
         print(db.getCommentsCountByType("LikeMe"))
-        getAllLikeMeMsg()
     except KeyboardInterrupt as e:
         printD(e)
     else:
