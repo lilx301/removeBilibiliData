@@ -15,11 +15,14 @@ conn = None
 cursor = None
 
 import hashlib
+def isDbConnected():
+    return conn is not None and cursor is not None 
 
 def closeDb():
     if conn is not None:
         cursor.close()
         conn.close()
+        cursor = None
     encDb()
     setWorkingFlag(False)
 
@@ -363,7 +366,7 @@ def getUnQueryHistoryCount():
     row = cursor.fetchone()
     return  dict(row).get("c")
 
-def getUnqueryHistory(CUNT=15):
+def getUnqueryHistory(CUNT=30):
     # viewAt,oid,pageNo = getCurrentQueryProgress()
     cursor.execute('SELECT * from "histories" where  ex1 is null    order by view_at asc   limit ?',(CUNT,) )
 

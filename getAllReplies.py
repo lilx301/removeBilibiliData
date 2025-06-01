@@ -16,6 +16,7 @@ from tool import timeStamp2Str
 from tool import ymd2Stamp
 from tool import getObjWithKeyPath
 import db
+from pushback import pushback
 
 # 查询容差，两次运行4h间隔，这里设置5h
 Query_Tolerance = 5 * 3600
@@ -400,6 +401,12 @@ def getAllReplies(Revers=True):
                     return
  
                 time.sleep(1 + random.random() )
+
+        
+
+        pushbackMsg = f"已查{_counter}历史"
+
+        pushback(pushbackMsg)
 
         
 
