@@ -151,7 +151,7 @@ def getMsgReplyMe(id = None,reply_time = None):
             printD(f"R {title}  msg: {msg} {timeStamp2Str(reply_time)}")
 
             
-
+            typeCode = getObjWithKeyPath(item, 'item.business_id')
 
             itmInsert = {
                 "rpid": rpid,
@@ -160,7 +160,7 @@ def getMsgReplyMe(id = None,reply_time = None):
                 "title":title,
                 "msg":msg,
                 "ex1":"AtMe",
-                "ex2": getObjWithKeyPath(item, 'item.business_id'),  # 添加typeCode
+                "ex2": f"{typeCode}" if typeCode is not None else None,  # 添加typeCode
                 "ctime":reply_time, # 就把回复时间当做ctime吧
 
                 "json": json.dumps(item, ensure_ascii=False),  # 将item数据存储为JSON字符串 有些字段不知道什么意思，都存吧
@@ -232,7 +232,7 @@ def getLikeMeMsg(id = None,like_time = None):
             # "title": msg,  # Re-enable the title field
             "msg": msg,
             "ex1": "LikeMe",
-            'ex2': typeCode,  # 添加typeCode
+            "ex2": f"{typeCode}" if typeCode is not None else None,  # 添加typeCode
             "json": json.dumps(itm, ensure_ascii=False),  # 将item数据存储为JSON字符串
             "ctime": itmData.get('ctime', int(time.time()))  # 使用like_time或当前时间
         })
@@ -279,6 +279,7 @@ def getAllLikeMeMsg():
                 # 结束，删掉进度
                 config.removeConfig(keyForCusor)
             printD("No more LikeMe messages found.")
+            db.setConfig(LikeTimeLine, intV=newTime)
             break
 
         if newTime == 0:
@@ -295,8 +296,8 @@ def getAllLikeMeMsg():
 
 
 
-    if newTime is not None and newTime > preTime :
-        db.setConfig(LikeTimeLine, intV=newTime)
+
+        
 
 def getAllReply2MeMsg():
     """
@@ -335,6 +336,7 @@ def getAllReply2MeMsg():
                 printD("Ending @me replies retrieval.",cursor)
                 config.removeConfig(keyForCusor)
             printD("No more @me replies found.")
+            db.setConfig(PreRepTimeKey, intV=newTime)
             break
 
         if newTime == 0:
@@ -347,11 +349,11 @@ def getAllReply2MeMsg():
 
 
         
-        
+
         time.sleep(1 + random.random() )  # 避免请求过快
 
-    if newTime is not None and newTime > preTime:
-        db.setConfig(PreRepTimeKey, intV=newTime)
+
+        
         
 
 if __name__ == '__main__':

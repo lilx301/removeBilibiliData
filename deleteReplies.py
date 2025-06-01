@@ -39,6 +39,7 @@ print("print Start")
 
 
 GCOUNT=1
+GCOUNTALL = 0 
  
 
 # 删除一个评论
@@ -76,7 +77,15 @@ def deleteReplyItem(replyItem):
         'Referer': 'https://space.bilibili.com/21307077/fans/fans',
 
     }
-    resObj=requests.request('post', url, data=data, headers=headers,timeout=5)
+    for _ in range(3):
+        try:
+            # 可能会被封IP
+            resObj=requests.request('post', url, data=data, headers=headers,timeout=5)
+            break
+        except requests.exceptions.RequestException as e:
+            printD("请求异常，重试:", e)
+            time.sleep(2 + random.random() * 2)
+    
     re = resObj.json()
     
     #     0：成功
@@ -95,8 +104,8 @@ def deleteReplyItem(replyItem):
     flag = 1 if re.get('code') == 0 else re.get('code')
     db.updateCommentFlag(str( replyItem['oid']),str(replyItem.get("rpid")),flag)
     if re['code'] == 0:
-        global GCOUNT
-        print("删除评论 成功" , GCOUNT)
+        global GCOUNT,GCOUNTALL
+        print("删除评论 成功" , GCOUNT, '/', GCOUNTALL)
         
         GCOUNT = GCOUNT + 1
 
@@ -145,8 +154,10 @@ def checkLoopShoudStop(list2Del,preList):
 
 
 def startDelete(timeStamp):
+    global GCOUNTALL
     STOP=0
 
+    GCOUNTALL= db.getUndeletedCommentsCount(timeStamp)
     preList = None
     while STOP == 0:
         
@@ -173,17 +184,17 @@ def startDelete(timeStamp):
                     printD('删除评论', item.get('msg'), '时间:',   tool.timeStamp2Str(item.get('ctime')))
                     i = deleteReplyItem(item)
                     if i == 1:
-                        printD('删除成功', item.get('msg'),item.get('bvid'))
+                        printD('删除成功', item.get('msg'),item.get('bvid'),tool.timeStamp2Str(item.get('ctime')))
                     if i == -1:
                         continue
 
-                    time.sleep( 2 + random.random() * 3)
+                    time.sleep( 1 + random.random() )
                 except Exception as e:
                     print("发生异常：", e)
                     STOP = 1
                     break
             
-            time.sleep(0.5 + random.random() * 1.5)
+            time.sleep(0.3 + random.random() )
         
         
     
@@ -202,7 +213,7 @@ if __name__ == '__main__':
         nowSecStamp = int(time.time())
     # 删除时间超过7天的评论
         print('删除时间超过7天的评论')
-        startDelete(nowSecStamp - 24 * 3600 * 4)
+        startDelete(nowSecStamp - 24 * 3600 * 7)
     except KeyboardInterrupt as e:
         printD(e)
     else:

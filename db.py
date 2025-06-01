@@ -381,6 +381,11 @@ def getUnqueryHistory(CUNT=30):
     return r 
 
 
+def getUndeletedCommentsCount(timeStamp):
+    
+    cursor.execute('SELECT count(1) as c from "comments" where ( flag is null or flag = 0  ) and ctime < ?', (timeStamp,))
+    row = cursor.fetchone()
+    return dict(row).get("c")
 
 def getUndeletedComments(timeStamp,COUNT = 100):
     printD('getUndeletedComments',timeStamp)
