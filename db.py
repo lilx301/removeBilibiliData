@@ -8,6 +8,7 @@ from debug import printD
 import json
 import tool 
 import gzip
+import time
 from aes import AEScoder 
 ENC =AEScoder(os.getenv('CFGKEY'))
 conn = None
@@ -303,12 +304,24 @@ def updateCommentFlag(oid,rpid,flag):
         return
     key = f"RP-{oid}-{rpid}"
     printD('updateCommentFlag',oid,rpid,flag,key)
-    cursor.execute('''
-        UPDATE "comments" SET flag = ?  WHERE key = ?  
-    ''',
-    (flag,key)
-    )
+    if flag == 1:
+
+        cursor.execute('''
+            UPDATE "comments" SET flag = ? , deltime = ?  WHERE key = ?  
+        ''',
+        (flag,int(time.time()),key)
+        )
+    else:
+        cursor.execute('''
+            UPDATE "comments" SET flag = ?  WHERE key = ?  
+        ''',
+        (flag,key)
+        )
+
     
+    if flag == 1:
+        printD('标记为删除')
+
     printD('before:',cursor.rowcount)
 
     conn.commit()
@@ -566,6 +579,18 @@ def test():
     cursor.execute('update histories set ex1 = "1" where view_at   <  1748537573 ')
     conn.commit()
     pass 
+
+def getCommentsAfterTime(timeSec):
+    printD('getCommentsAfterTime', timeSec)
+    cursor.execute('SELECT flag, deltime, ctime,title,msg from "comments" where ctime > ? or deltime > ? order by ctime asc', (timeSec, timeSec  ))
+    rows = cursor.fetchall()
+    if rows is not None:
+        r = []
+        for row in rows:
+            r.append(dict(row))
+        
+        return r
+    return []
 
 if __name__ == '__main__':
  
