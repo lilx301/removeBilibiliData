@@ -19,10 +19,12 @@ def isDbConnected():
     return conn is not None and cursor is not None 
 
 def closeDb():
+    global cursor, conn
     if conn is not None:
         cursor.close()
         conn.close()
         cursor = None
+        conn = None
     encDb()
     setWorkingFlag(False)
 

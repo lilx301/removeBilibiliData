@@ -10,3 +10,4 @@ __pycache__
 **/bilidata.*
 **/ebilidataONE.enc
 **/tmpdata.*
+data/flg.txt
