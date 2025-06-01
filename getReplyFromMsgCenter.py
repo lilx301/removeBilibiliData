@@ -291,7 +291,7 @@ def getAllLikeMeMsg():
         time.sleep(1 + random.random() )  # 避免请求过快
 
     if newTime > preTime:
-        db.setConfig(PreRepTimeKey, intV=newTime)
+        db.setConfig(LikeTimeLine, intV=newTime)
 
 
 
