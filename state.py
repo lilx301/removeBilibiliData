@@ -88,9 +88,10 @@ def mainfunc():
         print(msg)
         notice.sendBarkMsg(msg)
 
+        arrCmt = getNewDetail(cfg0.get('now', int(time.time())-60))
         if len(arrCmt) > 0:
 
-            arrCmt = getNewDetail(cfg0.get('now', int(time.time())-60))
+            
             arrCmt1 = [cmt for cmt in arrCmt if cmt['flag'] == 1]  
             arrCmt0 = [cmt for cmt in arrCmt if cmt['flag'] == 0 or cmt['flag'] is None]
             msgDetail = f'新评论：{len(arrCmt0)}\n'
