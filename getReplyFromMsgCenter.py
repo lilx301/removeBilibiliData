@@ -287,7 +287,7 @@ def getAllLikeMeMsg():
 
 
         
-        if random.random() < 0.3:
+        if random.random() < 0.8:
             break
 
         time.sleep(1 + random.random() )  # 避免请求过快
