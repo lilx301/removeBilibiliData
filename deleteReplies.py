@@ -199,7 +199,7 @@ def startDelete(timeStamp):
         
         
     
-        if GCOUNT % 150 == 149:
+        if GCOUNT % 500 == 499:
             pushbackMsg = f"删除评论数量：{GCOUNT} / {GCOUNTALL}"
             pushback(pushbackMsg)
 
