@@ -592,9 +592,7 @@ def getCommentsCountByType(type):
     return dict(cursor.fetchone()).get('c', 0)
 
 def test():
-    cursor.execute('delete FROM comments WHERE ex1 = "AtMe" or ex1 = "LikeMe"')
-    conn.commit()
-    printD("AtMe 评论数量",cursor.rowcount)
+
     pass 
 
 def getCommentsAfterTime(timeSec):
