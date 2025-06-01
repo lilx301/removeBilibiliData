@@ -107,7 +107,7 @@ def mainfunc():
 
         if historyCount0 == historyCount1 and commentCount0 == commentCount1 and delCount0 == delCount1:
             print("没有变化")
-            # return
+            return
 
         msg = f'''
 浏览记录: + {'None' if historyCount0 == -1 or historyCount1 == -1 else historyCount1 - historyCount0 : 5d}
