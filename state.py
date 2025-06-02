@@ -95,13 +95,13 @@ def mainfunc():
             arrCmt1 = [cmt for cmt in arrCmt if cmt['flag'] == 1]  
             arrCmt0 = [cmt for cmt in arrCmt if cmt['flag'] == 0 or cmt['flag'] is None]
             msgDetail = f'新评论：{len(arrCmt0)}\n'
-            for cmt in arrCmt1:
+            for cmt in arrCmt0:
                 msgDetail += f"[{cmt['title']}]\n\tR:{cmt['msg']}\n\n"
 
 
 
-            msgDetail += f'\n--------\n删除评论：{len(arrCmt0)}\n'
-            for cmt in arrCmt0:
+            msgDetail += f'\n--------\n删除评论：{len(arrCmt1)}\n'
+            for cmt in arrCmt1:
                 # printD("新评论:", cmt)
                 msgDetail += f"[{cmt['title']}]\n\tR:{cmt['msg']}\n\n"
 
