@@ -32,11 +32,13 @@ jobs:
           with:
             token: ${{ secrets.GITHUB_TOKEN }}
             repository: ${{ github.repository }}
-            retain_days: 1
+            retain_days: 3
             keep_minimum_runs: 5
   RemoveFans:
 
     runs-on: ubuntu-latest
+    env:
+      TZ: Asia/Shanghai  # 设置整个 job 的时区
 
     steps:
     - uses: actions/checkout@v4
@@ -103,18 +105,18 @@ jobs:
         git commit -m "Rename workflow file to prevent re-triggering" || True
 
     - name: Sync To codeberg
-      uses: Lorem3/push2other@v2.0
+      uses: Lorem3/push2other@v2
       with:
           target-url: ${{ secrets.SYNC_URL1 }}
           private-key: ${{ secrets.SYNC_KEY }}
 
     - name: Sync To VS
-      uses: Lorem3/push2other@v2.0
+      uses: Lorem3/push2other@v2
       with:
           target-url: ${{ secrets.SYNC_URL2 }}
           private-key: ${{ secrets.SYNC_KEY }}
     - name: Sync To G2
-      uses: Lorem3/push2other@v2.0
+      uses: Lorem3/push2other@v2
       with:
           target-url: ${{ secrets.SYNC_URL3 }}
           private-key: ${{ secrets.SYNC_KEY }}
