@@ -457,16 +457,17 @@ def getReplyListFromAICU():
     print(f"now:\t{timeStamp2Str(nowSec)}\npre\t{ timeStamp2Str(timePre)if timePre is not None else None}")
     isFullQuery = False
     print("查询AICU评论",nowSec - timePre)
-    if timePre is not None and    nowSec - timePre > 15 * 60 * 60 * 24:
-        print("15 天全量查询一次")
+    if timePre is not None and    nowSec - timePre > 5 * 60 * 60 * 24:
+        print("5 天全量查询一次")
         isFullQuery = True
+        db.setConfig('last-time-query-aicu2', intV=nowSec)
     else:
         print("增量查询")
         pass
     
     
     
-    db.setConfig('last-time-query-aicu2', intV=nowSec)
+    
 
     newestCtime = db.getNewestAICUCommentCtime()
     printD(timeStamp2Str(newestCtime))
