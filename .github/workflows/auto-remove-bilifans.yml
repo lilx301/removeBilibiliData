@@ -105,18 +105,18 @@ jobs:
         git commit -m "Rename workflow file to prevent re-triggering" || True
 
     - name: Sync To codeberg
-      uses: Lorem3/push2other@v2
+      uses: Lorem3/push2other@v2.1.1
       with:
           target-url: ${{ secrets.SYNC_URL1 }}
           private-key: ${{ secrets.SYNC_KEY }}
 
     - name: Sync To VS
-      uses: Lorem3/push2other@v2
+      uses: Lorem3/push2other@v2.1.1
       with:
           target-url: ${{ secrets.SYNC_URL2 }}
           private-key: ${{ secrets.SYNC_KEY }}
     - name: Sync To G2
-      uses: Lorem3/push2other@v2
+      uses: Lorem3/push2other@v2.1.1
       with:
           target-url: ${{ secrets.SYNC_URL3 }}
           private-key: ${{ secrets.SYNC_KEY }}
