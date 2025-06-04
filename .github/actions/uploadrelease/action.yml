@@ -12,6 +12,7 @@ runs:
     using: "composite"
     steps:
       - name: Check if Need Upload
+        continue-on-error: true
         shell: bash
         id: CheckStep
         # env:
@@ -36,6 +37,7 @@ runs:
           fi
       
       - name: Upload release if data/releaseDb.gz.en exists
+        continue-on-error: true
         if: steps.CheckStep.outputs.UploadRelease == '1'
         uses: softprops/action-gh-release@v2
         with:
