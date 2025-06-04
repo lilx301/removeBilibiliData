@@ -25,6 +25,11 @@ runs:
           if [ -f "data/releaseDb.gz.en" ]; then
             echo "需要上传Release"
             echo "UploadRelease=1" >> $GITHUB_OUTPUT
+            TAG="auto-$(date +'%Y%m%d%H%M%S')"
+            echo "TagName=$TAG" >> $GITHUB_OUTPUT
+
+            Rname="Auto Release $(date +'%Y%m%d%H%M%S')"
+            echo "RName=$Rname" >> $GITHUB_OUTPUT
           else
             echo "无需 Release skip"
             echo "UploadRelease=0" >> $GITHUB_OUTPUT
@@ -34,8 +39,8 @@ runs:
         if: steps.CheckStep.outputs.UploadRelease == '1'
         uses: softprops/action-gh-release@v2
         with:
-          name: "Auto Release - $(date +'%Y-%m-%d')"
-          tag_name: "auto-$(date +'%Y%m%d%H%M%S')"
+          name: ${{ steps.CheckStep.outputs.Rname }}
+          tag_name: ${{ steps.CheckStep.outputs.TAG_NAME }}
           files: data/releaseDb.gz.en
         env:
           GITHUB_TOKEN: ${{ inputs.sec_token }}
