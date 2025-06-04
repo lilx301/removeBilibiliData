@@ -88,22 +88,30 @@ def mainfunc():
         print(msg)
         notice.sendBarkMsg(msg)
 
+        preNow = cfg0.get('now', int(time.time())-60)
+
+        dltT = int(time.time()) - preNow
+        print(preNow,dltT)
+
         arrCmt = getNewDetail(cfg0.get('now', int(time.time())-60))
         if len(arrCmt) > 0:
 
             
             arrCmt1 = [cmt for cmt in arrCmt if cmt['flag'] == 1]  
             arrCmt0 = [cmt for cmt in arrCmt if cmt['flag'] == 0 or cmt['flag'] is None]
-            msgDetail = f'新评论：{len(arrCmt0)}\n'
-            for cmt in arrCmt0:
-                msgDetail += f"[{cmt['title']}]\n\tR:{cmt['msg']}\n\n"
+            if len(arrCmt0) > 0 :
+
+                msgDetail = f'新评论：{len(arrCmt0)}  耗时:[{dltT/60 : .0f}m]\n'
+                for cmt in arrCmt0:
+                    msgDetail += f"[{cmt['title']}]\n\tR:{cmt['msg']}\n\n"
 
 
-
-            msgDetail += f'\n--------\n删除评论：{len(arrCmt1)}\n'
-            for cmt in arrCmt1:
-                # printD("新评论:", cmt)
-                msgDetail += f"[{cmt['title']}]\n\tR:{cmt['msg']}\n\n"
+    
+            if len(arrCmt1) > 0 :
+                msgDetail += f'\n--------\n删除评论：{len(arrCmt1)} 耗时:[{dltT/60 : .0f}m]\n'
+                for cmt in arrCmt1:
+                    # printD("新评论:", cmt)
+                    msgDetail += f"[{cmt['title']}]\n\tR:{cmt['msg']}\n\n"
 
             notice.sendTgMsg(msgDetail)
 

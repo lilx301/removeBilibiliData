@@ -29,7 +29,7 @@ runs:
             TAG="auto-$(date +'%Y%m%d%H%M%S')"
             echo "TagName=$TAG" >> $GITHUB_OUTPUT
 
-            Rname="Auto Release $(date +'%Y%m%d%H%M%S')"
+            Rname="Auto Release $(date +'%Y-%m-%d %H:%M:%S')"
             echo "RName=$Rname" >> $GITHUB_OUTPUT
           else
             echo "无需 Release skip"
@@ -44,7 +44,7 @@ runs:
           name: ${{ steps.CheckStep.outputs.Rname }}
           tag_name: ${{ steps.CheckStep.outputs.TagName }}
           files: data/sqlite_backup.gz.en
-          body:  sqlite 数据库文件的备份 (先解密后解压) 密钥使用的是CFG
+          body:  sqlite 数据库文件的备份 (先解密后解压) 密钥:CFGKEY
         env:
           GITHUB_TOKEN: ${{ inputs.sec_token }}
 
