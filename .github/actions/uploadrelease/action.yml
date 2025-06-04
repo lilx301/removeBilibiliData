@@ -40,7 +40,7 @@ runs:
         uses: softprops/action-gh-release@v2
         with:
           name: ${{ steps.CheckStep.outputs.Rname }}
-          tag_name: ${{ steps.CheckStep.outputs.TAG_NAME }}
+          tag_name: ${{ steps.CheckStep.outputs.TagName }}
           files: data/releaseDb.gz.en
         env:
           GITHUB_TOKEN: ${{ inputs.sec_token }}
