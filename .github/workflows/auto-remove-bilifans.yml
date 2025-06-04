@@ -64,6 +64,8 @@ jobs:
         CFGKEY: '${{ secrets.CFGKEY }}'
     - name: upload release if need
       uses: ./.github/actions/uploadrelease
+      with:
+        sec_token: '${{ secrets.GITHUB_TOKEN }}'
 
     - name: pushBack History
       uses: ./.github/actions/pushback
