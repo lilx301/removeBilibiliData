@@ -12,3 +12,4 @@ __pycache__
 **/tmpdata.*
 data/flg.txt
 data/localcfg*
+data/releaseDB*
