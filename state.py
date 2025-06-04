@@ -79,8 +79,12 @@ def mainfunc():
             print("没有变化")
             if not isDebug():
                 return
+        preNow = cfg0.get('now', int(time.time())-60)
 
+        dltT = int(time.time()) - preNow
+        
         msg = f'''
+耗时:[{dltT/60 : .0f}m]
 浏览记录: + {'None' if historyCount0 == -1 or historyCount1 == -1 else historyCount1 - historyCount0 : 5d}
 评论数量: + {'None' if commentCount0 == -1 or commentCount1 == -1 else commentCount1 - commentCount0 : 5d}
 删除数量: - {'None' if delCount0 == -1 or delCount1 == -1 else delCount1 - delCount0: 5d}
@@ -88,20 +92,18 @@ def mainfunc():
         print(msg)
         notice.sendBarkMsg(msg)
 
-        preNow = cfg0.get('now', int(time.time())-60)
-
-        dltT = int(time.time()) - preNow
+        
         print(preNow,dltT)
 
         arrCmt = getNewDetail(cfg0.get('now', int(time.time())-60))
         if len(arrCmt) > 0:
 
-            
+            msgDetail = ""
             arrCmt1 = [cmt for cmt in arrCmt if cmt['flag'] == 1]  
             arrCmt0 = [cmt for cmt in arrCmt if cmt['flag'] == 0 or cmt['flag'] is None]
             if len(arrCmt0) > 0 :
 
-                msgDetail = f'新评论：{len(arrCmt0)}  耗时:[{dltT/60 : .0f}m]\n'
+                msgDetail += f'新评论：{len(arrCmt0)}  耗时:[{dltT/60 : .0f}m]\n'
                 for cmt in arrCmt0:
                     msgDetail += f"[{cmt['title']}]\n\tR:{cmt['msg']}\n\n"
 
