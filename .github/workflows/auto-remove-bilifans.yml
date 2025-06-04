@@ -62,10 +62,6 @@ jobs:
         python3 -u getAllReplies.py 1
       env:
         CFGKEY: '${{ secrets.CFGKEY }}'
-    - name: upload release if need
-      uses: ./.github/actions/uploadrelease
-      with:
-        sec_token: '${{ secrets.GITHUB_TOKEN }}'
 
     - name: pushBack History
       uses: ./.github/actions/pushback
@@ -92,11 +88,17 @@ jobs:
         python3 -u genRelease.py 
       env:
         CFGKEY: '${{ secrets.CFGKEY }}'
+    
+
+    - name: upload release if need
+      uses: ./.github/actions/uploadrelease
+      with:
+        sec_token: '${{ secrets.GITHUB_TOKEN }}'
+
     - name: pushBack
       uses: ./.github/actions/pushback
       with:
         cmt_msg: 'Remove Replies'
-
      
 
     
