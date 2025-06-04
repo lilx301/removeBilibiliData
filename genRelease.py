@@ -9,12 +9,12 @@ import tool
 ENCTOOL =AEScoder(os.getenv('CFGKEY'))
 def decryptData():
     try:
-        with open('data/releaseDb.gz.en','rb') as f:
+        with open('data/sqlite_backup.gz.en','rb') as f:
             bf = f.read()
             bfD = ENCTOOL.decryptBin(bf)
             bf2 = gzip.decompress(bfD)
             
-            with open('data/tmpdata_releasedb.db','wb') as outf:
+            with open('data/tmpdata_sqlite_backup.db','wb') as outf:
                 outf.write(bf2)
 
     except Exception as e:
@@ -27,7 +27,7 @@ if __name__ == '__main__':
     DAY = 5
     try:
         preDate = None
-        with open('releasetime.txt','r') as f:
+        with open('data/releasetime.txt','r') as f:
             preDate = f.read()
         
         tpre = tool.ymd2Stamp(preDate,fmt = "%Y-%m-%d %H:%M:%S")
@@ -50,12 +50,12 @@ if __name__ == '__main__':
             bf = f.read()
             gzbf = gzip.compress(bf,mtime=0)
             encBf = ENCTOOL.encryptBin(gzbf)
-            with open('data/releaseDb.gz.en','wb') as outf :
+            with open('data/sqlite_backup.gz.en','wb') as outf :
                 outf.write(encBf)
             
             t = int(time.time())
             
-            with open('releasetime.txt','w') as outf:
+            with open('data/releasetime.txt','w') as outf:
                 outf.write(tool.timeStamp2Str(t))
 
     
