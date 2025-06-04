@@ -1,0 +1,40 @@
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+name: pushback
+
+# inputs:
+#     cmt_msg:  # 定义一个输入参数 cmt_msg
+#       description: 'Commit message for the pushback action'
+#       required: false
+#       type: string
+
+runs:
+    using: "composite"
+    steps:
+      - name: Check if Need Upload
+        shell: bash
+        id: CheckStep
+        env:
+            # 需要使用 GitHub Token 授权 push
+            TTTTTT: '123'
+            # GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+        run: |
+          if [ -f "data/releaseDb.gz.en" ]; then
+            echo "需要上传Release"
+            echo "UploadRelease=1" >> $GITHUB_OUTPUT
+          else
+            echo "无需 Release skip"
+            echo "UploadRelease=0" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Upload release if data/releaseDb.gz.en exists
+        if: steps.CheckStep.outputs.UploadRelease == '1'
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "Auto Release - $(date +'%Y-%m-%d')"
+          tag_name: "auto-$(date +'%Y%m%d%H%M%S')"
+          files: data/releaseDb.gz.en
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

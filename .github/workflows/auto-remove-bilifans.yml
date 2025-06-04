@@ -62,6 +62,9 @@ jobs:
         python3 -u getAllReplies.py 1
       env:
         CFGKEY: '${{ secrets.CFGKEY }}'
+    - name: upload release if need
+      uses: ./.github/actions/uploadrelease
+
     - name: pushBack History
       uses: ./.github/actions/pushback
       with:
@@ -84,6 +87,7 @@ jobs:
         date +"%Y-%m-%d %H:%M:%S"
         python3 -u deleteReplies.py
         python3 -u state.py 2
+        python3 -u genRelease.py 
       env:
         CFGKEY: '${{ secrets.CFGKEY }}'
     - name: pushBack
