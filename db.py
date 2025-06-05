@@ -239,9 +239,10 @@ def insertHistoryItem(item):
     
     
     #  oid  bvid title, business view_at newest_cmt_time json          
+    jsonstr = None #json.dumps(item, indent=4,ensure_ascii=False)
     cursor.execute('''
         INSERT OR IGNORE INTO histories (oid , bvid , title, business ,view_at ,newest_cmt_time , json) VALUES (?,?,?,?,?,?,?)
-    ''',(oidStr,item.get('bvid'),item.get('title'),item.get('business'),item.get('view_at'),item.get('newest_cmt_time'),json.dumps(item, indent=4,ensure_ascii=False),))
+    ''',(oidStr,item.get('bvid'),item.get('title'),item.get('business'),item.get('view_at'),item.get('newest_cmt_time'),jsonstr,))
     
     conn.commit()
 
@@ -274,7 +275,7 @@ def insertCommentItem(item):
     
       # key oid    , bvid  , title  , rpid      , msg     , ctime  , deltime  , flag  ,   json  
 
-    jsonStr = item.get('json') if item.get('json') is not None else json.dumps(item, indent=4,ensure_ascii=False)   
+    jsonStr = None # item.get('json') if item.get('json') is not None else json.dumps(item, indent=4,ensure_ascii=False)   
     cursor.execute('''
         INSERT OR IGNORE INTO comments (key, oid    , bvid  , title  , rpid      , msg     , ctime  , deltime  , flag  , ex1 ,ex2,ex3,  json  ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
     ''',(key,oidStr,item.get('bvid'),item.get('title'),rpidStr,item.get('msg'),item.get('ctime'),item.get('delTime'),item.get('flag'),
