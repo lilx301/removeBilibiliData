@@ -84,7 +84,7 @@ def mainfunc():
         dltT = int(time.time()) - preNow
         
         msg = f'''
-耗时:[{dltT/60 : .0f}m]
+耗时: {dltT/60 : .0f}m
 浏览记录: + {'None' if historyCount0 == -1 or historyCount1 == -1 else historyCount1 - historyCount0 : 5d}
 评论数量: + {'None' if commentCount0 == -1 or commentCount1 == -1 else commentCount1 - commentCount0 : 5d}
 删除数量: - {'None' if delCount0 == -1 or delCount1 == -1 else delCount1 - delCount0: 5d}
@@ -98,22 +98,22 @@ def mainfunc():
         arrCmt = getNewDetail(cfg0.get('now', int(time.time())-60))
         if len(arrCmt) > 0:
 
-            msgDetail = ""
+            msgDetail = f"耗时:{dltT/60 : .0f}m\n"
             arrCmt1 = [cmt for cmt in arrCmt if cmt['flag'] == 1]  
             arrCmt0 = [cmt for cmt in arrCmt if cmt['flag'] == 0 or cmt['flag'] is None]
             if len(arrCmt0) > 0 :
 
-                msgDetail += f'新评论：{len(arrCmt0)}  耗时:[{dltT/60 : .0f}m]\n'
+                msgDetail += f'新评论：{len(arrCmt0)}  \n'
                 for cmt in arrCmt0:
-                    msgDetail += f"[{cmt['title']}]\n\tR:{cmt['msg']}\n\n"
+                    msgDetail += f"[{cmt['title']}]\n   R:{cmt['msg']}\n\n"
 
 
     
             if len(arrCmt1) > 0 :
-                msgDetail += f'\n--------\n删除评论：{len(arrCmt1)} 耗时:[{dltT/60 : .0f}m]\n'
+                msgDetail += f'\n--------\n删除评论：{len(arrCmt1)}\n'
                 for cmt in arrCmt1:
                     # printD("新评论:", cmt)
-                    msgDetail += f"[{cmt['title']}]\n\tR:{cmt['msg']}\n\n"
+                    msgDetail += f"[{cmt['title']}]\n   R:{cmt['msg']}\n\n"
 
             notice.sendTgMsg(msgDetail)
 
