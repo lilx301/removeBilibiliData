@@ -369,7 +369,7 @@ def getUnQueryHistoryCount():
     row = cursor.fetchone()
     return  dict(row).get("c")
 
-def getUnqueryHistory(CUNT=30):
+def getUnqueryHistory(CUNT=100):
     # viewAt,oid,pageNo = getCurrentQueryProgress()
     cursor.execute('SELECT * from "histories" where  ex1 is null    order by view_at asc   limit ?',(CUNT,) )
 
@@ -572,7 +572,7 @@ def exportComent(all = True):
 
 
     arr2 = []
-    if all:
+    if all and 0 :
         cursor.execute("select bvid ,title,view_at from histories  order by view_at desc  ")
         hlist  = cursor.fetchall()
         
