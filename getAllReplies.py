@@ -473,7 +473,12 @@ def getReplyListFromAICU():
     printD(timeStamp2Str(newestCtime))
 
     for pg in range(1,100000):
-        res = getReplyListFromAICUAtPage(pg)
+        try:
+            res = getReplyListFromAICUAtPage(pg)
+        except Exception as e:
+            print("Error occurred",e)
+            break
+        
 
         print(res['data']['cursor'])
         list = res['data']['replies']
@@ -530,8 +535,18 @@ def mainfunc():
         getAllHistories()
     elif taskType == '2':
         print("更新评论")
-        getReplyListFromAICU()
-        getAllReplies()
+        try:
+            getReplyListFromAICU()
+        except Exception as e:
+            print('eeee',e)
+
+        try:
+            getAllReplies()
+        except Exception as e:
+            print('eeee22',e)
+        
+
+        
     
 
    
