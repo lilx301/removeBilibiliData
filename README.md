@@ -14,8 +14,18 @@ Bilibili移除自己的粉丝
 ```
 
 ~~在github secret 中设置 COOKIE64=Base64(bilibil cookie)~~
-
 ![alt text](image.png)
+字段说明
+```
+{
+ "ac_time_value" :"1",   // 见下文
+ "COOKIE64" :"base64Encode(cookie)", // cookie 的base64 ，
+ "TGBOT"	 :"https://api.telegram.org/Bot:xxx/sendMessage?chat_id=123",通过电报通知
+ "BARK_URL"	 :"https://api.day.app/token", bark 通知的url
+ "BARK_KEY"	 :"0123456789abcdef" bark通知的加密密钥（选的端到端通知，设置16个字母/数字 即可）
+}
+```
+
 
 # 首次运行
 0. 在浏览器隐私窗口中，登录，
@@ -47,8 +57,7 @@ https://www.aicu.cc/reply.html?uid=${uid}
 
 接口 https://api.aicu.cc/api/v3/search/getreply?uid=${uid}$&pn=1&ps=100&mode=0&keyword=
 
-
-
+> 好像不让刷了~ ，懒得弄了，就这样吧
 
 > 通过历史记录轮询，查询评论，可能会有遗
 
