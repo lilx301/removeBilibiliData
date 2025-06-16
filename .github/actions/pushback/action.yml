@@ -25,5 +25,5 @@ runs:
               git config user.email "githubci"
               git status
               git add .
-              git diff --cached --quiet || git commit -m "${{inputs.cmt_msg }} $(date +"%Y-%m-%d %H:%M:%S %z") [ci skip]"
+              git diff --cached --quiet || git commit -m "${{inputs.cmt_msg }} [$(date +"%Y-%m-%d %H:%M:%S %Z")] [ci skip]"
               git push origin HEAD:master

@@ -21,8 +21,6 @@ runs:
             # GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
         run: |
-          pwd 
-          ls -al
           if [ -f "data/sqlite_backup.gz.en" ]; then
             echo "需要上传Release"
             echo "UploadRelease=1" >> $GITHUB_OUTPUT
