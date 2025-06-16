@@ -536,11 +536,13 @@ def mainfunc():
     elif taskType == '2':
         print("更新评论")
         try:
+            print("从AICU")
             getReplyListFromAICU()
         except Exception as e:
             print('eeee',e)
 
         try:
+            print("根据历史记录查询")
             getAllReplies()
         except Exception as e:
             print('eeee22',e)
