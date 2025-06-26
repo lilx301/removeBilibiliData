@@ -24,7 +24,7 @@ def decryptData():
 
 if __name__ == '__main__':
     NeedGenReleaseFile = True
-    DAY = 5
+    DAY = 17
     try:
         preDate = None
         with open('data/releasetime.txt','r') as f:
