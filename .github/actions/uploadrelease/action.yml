@@ -27,7 +27,7 @@ runs:
             TAG="auto-$(date +'%Y%m%d%H%M%S')"
             echo "TagName=$TAG" >> $GITHUB_OUTPUT
 
-            Rname="Auto Release $(date +'%Y-%m-%d %H:%M:%S')"
+            Rname="release-$(date +'%Y-%m-%d %H:%M:%S')"
             echo "RName=$Rname" >> $GITHUB_OUTPUT
           else
             echo "无需 Release skip"
