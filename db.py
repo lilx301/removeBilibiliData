@@ -562,7 +562,15 @@ def sliceDbFile():
 
 
 def exportComent(all = True):
-    cursor.execute(f"select msg ,title,ctime from comments  { '' if all else  'where flag is NULL or flag = 0' } order by ctime desc ")
+    cursor.execute(f"""
+        SELECT c.msg, 
+               COALESCE(h.title, c.title) as title, 
+               c.ctime
+        FROM comments c
+        LEFT JOIN histories h ON c.oid = h.oid
+        {'' if all else 'WHERE c.flag IS NULL OR c.flag = 0'}
+        ORDER BY c.ctime DESC
+    """)
     clst  = cursor.fetchall()
     arr = []
     for itm in clst:
@@ -570,12 +578,10 @@ def exportComent(all = True):
         mp['ctime'] = tool.timeStamp2Str(mp.get('ctime'))
         arr.append(mp)
 
-
     arr2 = []
-    if all and 0 :
+    if all and 0:
         cursor.execute("select bvid ,title,view_at from histories  order by view_at desc  ")
         hlist  = cursor.fetchall()
-        
         printD("历史记录数量",len(hlist))
         for itm in hlist:
             mp = dict(itm)
@@ -647,7 +653,7 @@ if __name__ == '__main__':
 
 
 
-     cursor.execute("vacuum;")
+    #  cursor.execute("vacuum;")
     #  conn.commit()
      closeDb()
      exit(1)
