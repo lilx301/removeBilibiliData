@@ -278,7 +278,7 @@ def insertCommentItem(item):
     jsonStr = None # item.get('json') if item.get('json') is not None else json.dumps(item, indent=4,ensure_ascii=False)   
     cursor.execute('''
         INSERT OR IGNORE INTO comments (key, oid    , bvid  , title  , rpid      , msg     , ctime  , deltime  , flag  , ex1 ,ex2,ex3,  json  ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
-    ''',(key,oidStr,item.get('bvid'),item.get('title'),rpidStr,item.get('msg'),item.get('ctime'),item.get('delTime'),item.get('flag'),
+    ''',(key,oidStr,item.get('bvid'),None ,rpidStr,item.get('msg'),item.get('ctime'),item.get('delTime'),item.get('flag'),
          item.get('ex1'),item.get('ex2'),item.get('ex3'),
          jsonStr
          ))
@@ -594,6 +594,8 @@ def getCommentsCountByType(type):
 
 def test():
 
+    # cursor.execute("UPDATE comments SET title = null ")
+    # conn.commit()
     pass 
 
 def getCommentsAfterTime(timeSec):
@@ -645,7 +647,7 @@ if __name__ == '__main__':
 
 
 
-    #  cursor.execute("vacuum;")
+     cursor.execute("vacuum;")
     #  conn.commit()
      closeDb()
      exit(1)
