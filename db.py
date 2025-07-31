@@ -579,7 +579,8 @@ def exportComent(all = True):
         arr.append(mp)
 
     arr2 = []
-    if all and 0:
+    hisCount = 0
+    if all :
         cursor.execute("select bvid ,title,view_at from histories  order by view_at desc  ")
         hlist  = cursor.fetchall()
         printD("历史记录数量",len(hlist))
@@ -587,8 +588,14 @@ def exportComent(all = True):
             mp = dict(itm)
             mp['ctime'] = tool.timeStamp2Str(mp.get('view_at'))
             arr2.append(mp)
+        hisCount = len(hlist)
+    else:
+        cursor.execute("select count(1) from histories   ")
+        row  = cursor.fetchone()
+        hisCount = dict(row).get('count(1)')
+
     
-    jsonstr = json.dumps({"list":arr,'history':arr2,'a_rep':len(arr),'a_his':len(arr2)},indent=4,ensure_ascii=False)
+    jsonstr = json.dumps({"list":arr,'history':arr2,'a_rep':len(arr),'a_his':hisCount},indent=4,ensure_ascii=False)
     with open('data/export.json','w') as f:
         f.write(jsonstr)
 
