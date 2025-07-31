@@ -583,7 +583,7 @@ def exportComent(all = True):
     if all :
         cursor.execute("select bvid ,title,view_at from histories  order by view_at desc  ")
         hlist  = cursor.fetchall()
-        printD("历史记录数量",len(hlist))
+        
         for itm in hlist:
             mp = dict(itm)
             mp['ctime'] = tool.timeStamp2Str(mp.get('view_at'))
@@ -594,7 +594,13 @@ def exportComent(all = True):
         row  = cursor.fetchone()
         hisCount = dict(row).get('count(1)')
 
-    
+
+    cursor.execute("select count(1) from comments   ")
+    row  = cursor.fetchone()
+    countAllCmt = dict(row).get('count(1)')
+
+    print("历史记录数量",hisCount)
+    print(f"历史评论数量 {len(arr)} / {countAllCmt}")
     jsonstr = json.dumps({"list":arr,'history':arr2,'a_rep':len(arr),'a_his':hisCount},indent=4,ensure_ascii=False)
     with open('data/export.json','w') as f:
         f.write(jsonstr)
