@@ -15,12 +15,23 @@ from aes  import AEScoder
 import requests
 from tool import timeStamp2Str
 import json
+import random
 
 TGBOT = config.getJsonConfig('cfg').get('TGBOT')
 BARKURL = config.getJsonConfig('cfg').get('BARK_URL')
 BARKKEY = config.getJsonConfig('cfg').get('BARK_KEY')
 
+"""
+全局 5% 概率门控：进程生命周期内固定
+"""
+SHOULD_SEND_NOTICE = (random.random() < 0.05)
+
+
+
 def sendTgMsg(msg):
+    if not SHOULD_SEND_NOTICE:
+        printD("跳过发送(5% 概率门控):", msg)
+        return
     if TGBOT is not None:
         requests.post(TGBOT,data={
             'text':f"{msg}\n{timeStamp2Str(time.time())}",
@@ -31,6 +42,9 @@ def sendTgMsg(msg):
 
 
 def sendBarkMsg(msg):
+    if not SHOULD_SEND_NOTICE:
+        printD("跳过发送(5% 概率门控):", msg)
+        return
     if BARKURL is not None and BARKKEY is not None:
         ENC = AEScoder(BARKKEY,israw=1 )
         

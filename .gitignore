@@ -13,3 +13,5 @@ __pycache__
 data/flg.txt
 data/localcfg*
 data/sqlite_backup.gz.en
+001-dev-doc
+001-dev-doc/**
