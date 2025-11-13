@@ -10,8 +10,8 @@ on:
       - modifyThisFileToTrigerCI
   pull_request:
     branches: [ "master" ]
-  schedule:
-    - cron: '15 */4 * * *'
+  # schedule:
+    # - cron: '15 */4 * * *'
   
 
 permissions:
