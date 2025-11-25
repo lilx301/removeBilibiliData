@@ -8,10 +8,10 @@ on:
     branches: [ "master" ]
     paths:
       - modifyThisFileToTrigerCI
-  # pull_request:
-    # branches: [ "master" ]
-  # schedule:
-    # - cron: '15 */4 * * *'
+  pull_request:
+    branches: [ "master" ]
+  schedule:
+    - cron: '15 */4 * * *'
   
 
 permissions:
