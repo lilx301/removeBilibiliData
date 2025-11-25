@@ -184,7 +184,7 @@ def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
 
     oid = f"{historyItem.get('oid')}"
 
-    print(f"getReplies[{seq}] {bt} {timeStamp2Str(historyItem.get('view_at') -  random.randint(1000,Query_Tolerance))}",)
+    print(f"getReplies[{seq}] {bt} view_at: {timeStamp2Str(historyItem.get('view_at') -  random.randint(1000,Query_Tolerance))}",)
     printD(f"{oid},{historyItem.get('title')}   \t{timeStamp2Str(historyItem.get('view_at'))}")
 
     NetRetryMax = 5
@@ -211,7 +211,7 @@ def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
             print('网络失败 ... 2s 后重试')
             if NetRetryMax > 0:
                 NetRetryMax = NetRetryMax - 1
-                time.sleep(2 + random.random() * 3)
+                time.sleep(1.5 + random.random() )
                 continue
             else:
                 return -1,None
