@@ -66,7 +66,7 @@ def getReqWithCookie():
     return session
 
 def checkIfNeedUpdate(Cookie,ac_time_value):
-    return False
+    return None
 
     session = requests.Session()
     set_cookies_from_string(session,cookie_str=Cookie)
