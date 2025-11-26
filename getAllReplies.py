@@ -21,6 +21,9 @@ from pushback import pushback
 # 查询容差，两次运行4h间隔，这里设置5h
 Query_Tolerance = 5 * 3600
 
+# 步长调整阈值：当最老评论时间 < 访问时间 + 此阈值时，步长改为1
+STEP_SIZE_THRESHOLD_HOURS = 3
+
 UID = refreshCookie.getUid()
 
 
@@ -194,7 +197,11 @@ def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
     preQueryLatestTime = 0 if preQueryLatestTime is None else preQueryLatestTime
 
     firstTime = 0
+    stepSize = 10  # 初始步长为10
+    lastPageIdx = pageIdx - 1  # 保存上一次页码
+    isFirstQuery = True  # 标记是否是首次查询
     while 1:
+        lastPageIdx = pageIdx  # 保存当前页码
         data  = {
             'type':type,
             'oid':oid,
@@ -202,8 +209,8 @@ def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
             # 'ps':"20",
             "pn":str(pageIdx)
         }
-        if pageIdx % 10 == 9 :
-            printD(f"{historyItem.get('title')}  {timeStamp2Str(historyItem.get('view_at'))}" )
+
+        printD(f"{historyItem.get('title')}  {timeStamp2Str(historyItem.get('view_at'))}" )
         try:
             res = session.get('https://api.bilibili.com/x/v2/reply',params=data,headers=headers,proxies={},timeout=10)
         except Exception as e:
@@ -270,6 +277,41 @@ def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
             # print(f"到末尾了，可能一些评论被吞了 {pageCount} -> {COUNT}" )
             break
         
+        # 动态步长调整逻辑
+        if list is None or len(list) == 0:
+            # 查询结果为空，回退并设置步长为1
+            if isFirstQuery:
+                # 首次查询结果为空，直接设置步长为1，不需要回退
+                stepSize = 1
+                print(f'[步长调整] 首次查询结果为空，步长改为1')
+            else:
+                # 非首次查询结果为空，回退并设置步长为1
+                stepSize = 1
+                pageIdx = lastPageIdx  # 回退到上次位置，下次循环会从 lastPageIdx + stepSize 开始
+                print(f'[步长调整] 查询结果为空，回退到 page {lastPageIdx}，步长改为1，下次从 page {lastPageIdx + stepSize} 开始')
+        elif list is not None and len(list) > 0:
+            # 获取最老评论时间
+            oldestCtime = list[-1].get("ctime")
+            viewAt = historyItem.get('view_at')
+            thresholdTime = None
+            if viewAt is not None:
+                thresholdTime = viewAt + STEP_SIZE_THRESHOLD_HOURS * 3600  # 访问时间 + 阈值小时
+            
+            # 判断是否需要调整步长
+            if oldestCtime is not None and thresholdTime is not None and oldestCtime < thresholdTime:
+                # 最老评论时间 < 访问时间+阈值小时，设置步长为1
+                stepSize = 1
+                if isFirstQuery:
+                    # 首次查询就满足条件，直接设置步长为1，不需要回退
+                    print(f'[步长调整] 首次查询最老评论时间 {timeStamp2Str(oldestCtime)} < 访问时间+{STEP_SIZE_THRESHOLD_HOURS}h {timeStamp2Str(thresholdTime)}，步长改为1')
+                else:
+                    # 非首次查询满足条件，回退并设置步长为1
+                    pageIdx = lastPageIdx  # 回退到上次位置，下次循环会从 lastPageIdx + stepSize 开始
+                    print(f'[步长调整] 最老评论时间 {timeStamp2Str(oldestCtime)} < 访问时间+{STEP_SIZE_THRESHOLD_HOURS}h {timeStamp2Str(thresholdTime)}，回退到 page {lastPageIdx}，步长改为1，下次从 page {lastPageIdx + stepSize} 开始')
+        
+        # 首次查询后，标记为非首次
+        isFirstQuery = False
+        
         if COUNT >= pageCount:
             print('end')
             break
@@ -296,7 +338,7 @@ def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
 
         
         
-        pageIdx += 1
+        pageIdx += stepSize
         time.sleep(2 + random.random() * 1)
 
     if firstTime is not None and firstTime > 0 :
