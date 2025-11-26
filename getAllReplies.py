@@ -273,9 +273,6 @@ def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
 
         if list is not None and len(list) > 0 :
             COUNT += len(list)
-        else:
-            # print(f"到末尾了，可能一些评论被吞了 {pageCount} -> {COUNT}" )
-            break
         
         # 动态步长调整逻辑
         if list is None or len(list) == 0:
@@ -283,12 +280,12 @@ def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
             if isFirstQuery:
                 # 首次查询结果为空，直接设置步长为1，不需要回退
                 stepSize = 1
-                print(f'[步长调整] 首次查询结果为空，步长改为1')
+                printD(f'[步长调整] 首次查询结果为空，步长改为1')
             else:
                 # 非首次查询结果为空，回退并设置步长为1
                 stepSize = 1
                 pageIdx = lastPageIdx  # 回退到上次位置，下次循环会从 lastPageIdx + stepSize 开始
-                print(f'[步长调整] 查询结果为空，回退到 page {lastPageIdx}，步长改为1，下次从 page {lastPageIdx + stepSize} 开始')
+                printD(f'[步长调整] 查询结果为空，回退到 page {lastPageIdx}，步长改为1，下次从 page {lastPageIdx + stepSize} 开始')
         elif list is not None and len(list) > 0:
             # 获取最老评论时间
             oldestCtime = list[-1].get("ctime")
@@ -303,14 +300,26 @@ def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
                 stepSize = 1
                 if isFirstQuery:
                     # 首次查询就满足条件，直接设置步长为1，不需要回退
-                    print(f'[步长调整] 首次查询最老评论时间 {timeStamp2Str(oldestCtime)} < 访问时间+{STEP_SIZE_THRESHOLD_HOURS}h {timeStamp2Str(thresholdTime)}，步长改为1')
+                    printD(f'[步长调整] 首次查询最老评论时间 {timeStamp2Str(oldestCtime)} < 访问时间+{STEP_SIZE_THRESHOLD_HOURS}h {timeStamp2Str(thresholdTime)}，步长改为1')
                 else:
                     # 非首次查询满足条件，回退并设置步长为1
                     pageIdx = lastPageIdx  # 回退到上次位置，下次循环会从 lastPageIdx + stepSize 开始
-                    print(f'[步长调整] 最老评论时间 {timeStamp2Str(oldestCtime)} < 访问时间+{STEP_SIZE_THRESHOLD_HOURS}h {timeStamp2Str(thresholdTime)}，回退到 page {lastPageIdx}，步长改为1，下次从 page {lastPageIdx + stepSize} 开始')
+                    printD(f'[步长调整] 最老评论时间 {timeStamp2Str(oldestCtime)} < 访问时间+{STEP_SIZE_THRESHOLD_HOURS}h {timeStamp2Str(thresholdTime)}，回退到 page {lastPageIdx}，步长改为1，下次从 page {lastPageIdx + stepSize} 开始')
         
         # 首次查询后，标记为非首次
         isFirstQuery = False
+        
+        # 如果查询结果为空，判断是否应该结束
+        if list is None or len(list) == 0:
+            # 如果总页数为0，说明这个视频/文章根本没有评论，直接结束
+            if pageCount == 0:
+                print(f"该视频/文章没有评论，结束查询 (pageCount: {pageCount})")
+                break
+            # 否则，说明可能是步长太大跳过了某些页，已经通过步长调整逻辑回退了
+            # 更新 pageIdx 并继续查询（跳过时间检查）
+            pageIdx += stepSize
+            time.sleep(2 + random.random() * 1)
+            continue
         
         if COUNT >= pageCount:
             print('end')
