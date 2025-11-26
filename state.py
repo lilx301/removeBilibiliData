@@ -83,11 +83,15 @@ def mainfunc():
 
         dltT = int(time.time()) - preNow
         
+        historyDiff = 'None' if historyCount0 == -1 or historyCount1 == -1 else historyCount1 - historyCount0
+        commentDiff = 'None' if commentCount0 == -1 or commentCount1 == -1 else commentCount1 - commentCount0
+        delDiff = 'None' if delCount0 == -1 or delCount1 == -1 else delCount1 - delCount0
+        
         msg = f'''
 耗时: {dltT/60 : .0f}m
-浏览记录: + {'None' if historyCount0 == -1 or historyCount1 == -1 else historyCount1 - historyCount0 : 5d}
-评论数量: + {'None' if commentCount0 == -1 or commentCount1 == -1 else commentCount1 - commentCount0 : 5d}
-删除数量: - {'None' if delCount0 == -1 or delCount1 == -1 else delCount1 - delCount0: 5d}
+浏览记录: + {historyDiff if isinstance(historyDiff, str) else f'{historyDiff: 5d}'}
+评论数量: + {commentDiff if isinstance(commentDiff, str) else f'{commentDiff: 5d}'}
+删除数量: - {delDiff if isinstance(delDiff, str) else f'{delDiff: 5d}'}
         '''
         print(msg)
         notice.sendBarkMsg(msg)
