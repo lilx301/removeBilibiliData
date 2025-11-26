@@ -346,6 +346,13 @@ def updateQueryCommentCtx(time_at,oid,pageIdx):
     if pageIdx is not None:
         setConfig('currentQueryPageNo',intV=pageIdx)
 
+def clearQueryCommentCtx():
+    """清理查询进度，用于查询完成后重置状态
+    注意：保留 currentQueryTime，只清理 oid 和 pageNo，以便下次查询时知道从哪里继续"""
+    # 只清理 oid 和 pageNo，保留 currentQueryTime 作为下次查询的起始时间
+    cursor.execute("DELETE FROM config WHERE key IN ('currentQueryOid', 'currentQueryPageNo')")
+    conn.commit()
+
 
 def getQueryHistoryCtx():
     return getConfig('QueryHistoryTimeNear'),getConfig('QueryHistoryTimeFar')

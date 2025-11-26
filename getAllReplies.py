@@ -198,8 +198,9 @@ def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
 
     firstTime = 0
     stepSize = 10  # 初始步长为10
-    lastPageIdx = pageIdx - 1  # 保存上一次页码
+    lastPageIdx = pageIdx  # 保存上一次页码，初始化为当前页码
     isFirstQuery = True  # 标记是否是首次查询
+    emptyResultCount = 0  # 连续空结果计数，防止无限循环
     while 1:
         lastPageIdx = pageIdx  # 保存当前页码
         data  = {
@@ -232,7 +233,11 @@ def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
         except Exception as e :
             print('获取评论失败....',oid,e)
             return -100,None
-
+        
+        # 检查 jObj 是否为 None
+        if jObj is None:
+            print('API 响应解析失败，jObj 为 None')
+            return -100, None
         
         # print(res.text)
 
@@ -248,7 +253,7 @@ def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
             print('---------------ERROR ??',bt,oid,historyItem.get('view_at'))
             db.updateHistoryLatestCommentTime(oid,jObj.get("code"))
 
-            return 0, None,
+            return 0, None
 
             # print(historyItem,jObj)
 
@@ -277,6 +282,12 @@ def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
         # 动态步长调整逻辑
         if list is None or len(list) == 0:
             # 查询结果为空，回退并设置步长为1
+            emptyResultCount += 1
+            # 防止无限循环：如果连续多次查询结果都为空，终止查询
+            if emptyResultCount > 10:
+                print(f"连续 {emptyResultCount} 次查询结果为空，终止查询以避免无限循环")
+                break
+            
             if isFirstQuery:
                 # 首次查询结果为空，直接设置步长为1，不需要回退
                 stepSize = 1
@@ -287,6 +298,8 @@ def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
                 pageIdx = lastPageIdx  # 回退到上次位置，下次循环会从 lastPageIdx + stepSize 开始
                 printD(f'[步长调整] 查询结果为空，回退到 page {lastPageIdx}，步长改为1，下次从 page {lastPageIdx + stepSize} 开始')
         elif list is not None and len(list) > 0:
+            # 有结果时重置空结果计数
+            emptyResultCount = 0
             # 获取最老评论时间
             oldestCtime = list[-1].get("ctime")
             viewAt = historyItem.get('view_at')
@@ -311,8 +324,8 @@ def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
         
         # 如果查询结果为空，判断是否应该结束
         if list is None or len(list) == 0:
-            # 如果总页数为0，说明这个视频/文章根本没有评论，直接结束
-            if pageCount == 0:
+            # 如果总评论数为0或None，说明这个视频/文章根本没有评论，直接结束
+            if pageCount is None or pageCount == 0:
                 print(f"该视频/文章没有评论，结束查询 (pageCount: {pageCount})")
                 break
             # 否则，说明可能是步长太大跳过了某些页，已经通过步长调整逻辑回退了
@@ -321,7 +334,9 @@ def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
             time.sleep(2 + random.random() * 1)
             continue
         
-        if COUNT >= pageCount:
+        # COUNT 是累计获取的评论数，pageCount 是总评论数
+        # 如果 pageCount 为 None，跳过此检查
+        if pageCount is not None and COUNT >= pageCount:
             print('end')
             break
 
@@ -350,9 +365,11 @@ def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
         pageIdx += stepSize
         time.sleep(2 + random.random() * 1)
 
-    if firstTime is not None and firstTime > 0 :
-        setLastCmtTime(oid,firstTime)
-    return 1,rList
+    printD('firstTime',firstTime)
+    # firstTime 初始化为 0，如果为 0 则使用当前时间
+    timeToSet = firstTime if firstTime > 0 else int(time.time())
+    setLastCmtTime(oid, timeToSet)
+    return 1, rList
 
 
 g_cmt_idx = {}
@@ -433,31 +450,49 @@ def getAllReplies(Revers=True):
             break
         for  itm in hisList:
             _counter += 1
-            if itm.get('view_at') is not None and itm.get('view_at') >= ta or 1:
-                if _counter == 1 and itm.get('oid') == preQueryOid and initPage > 0:
-                    pageIdx = initPage
-                    printD('continue ',_counter, itm.get('oid'),itm.get('view_at'),pageIdx)
-                else:
-                    pageIdx = 1
+            # 如果历史记录的 view_at 小于等于上次查询的时间，说明已经查询过了，跳过
+            if ta is not None and ta > 0 and itm.get('view_at') is not None and itm.get('view_at') <= ta:
+                printD(f'跳过已查询的历史记录: {itm.get("oid")} view_at: {timeStamp2Str(itm.get("view_at"))} <= {timeStamp2Str(ta)}')
+                continue
+            
+            if _counter == 1 and itm.get('oid') == preQueryOid and initPage > 0:
+                pageIdx = initPage
+                printD('continue ',_counter, itm.get('oid'),itm.get('view_at'),pageIdx)
+            else:
+                pageIdx = 1
                     
                   
                     
 
-                updateProgres(itm.get('view_at'),None,itm.get("oid"))
-                print(f"seq {_counter} / {ALLNeedQuery}")
-                r,_ = getRepiesInHistory(itm,pageIdx,seq=_counter,callback=dealCommentOnHistory)
-                initPage = -1; # 第一次才需要
-                if r < 0:
-                    print("发生错误，停止",r)
-                    return
+            updateProgres(itm.get('view_at'),None,itm.get("oid"))
+              
+            print(f"seq {_counter} / {ALLNeedQuery}")
+            r,_ = getRepiesInHistory(itm,pageIdx,seq=_counter,callback=dealCommentOnHistory)
+            initPage = -1; # 第一次才需要
+            if r < 0:
+                print("发生错误，停止",r)
+                return
+            
+            # 记录最后处理的历史记录时间，用于下次查询时跳过已查询的记录
+            if itm.get('view_at') is not None:
+                updateProgres(itm.get('view_at'), None, None)  # 只更新时间，不更新 oid 和 pageNo
  
-                time.sleep(1 + random.random() )
+            time.sleep(1 + random.random() )
 
         
 
         pushbackMsg = f"已查{_counter}历史"
 
         pushback(pushbackMsg)
+    
+    # 所有历史记录查询完成
+    # currentQueryTime 已经在处理每个历史记录时更新，最后的值就是最后处理的历史记录时间
+    # 下次查询时会自动从该时间继续，跳过已查询的记录
+    lastTime = db.getConfig('currentQueryTime')
+    if lastTime is not None:
+        print(f'所有历史记录查询完成，最后查询时间: {timeStamp2Str(lastTime)}，下次查询将从该时间继续')
+    else:
+        print('所有历史记录查询完成')
 
         
 
@@ -586,11 +621,11 @@ def mainfunc():
         getAllHistories()
     elif taskType == '2':
         print("更新评论")
-        try:
-            print("从AICU")
-            getReplyListFromAICU()
-        except Exception as e:
-            print('eeee',e)
+        # try:
+        #     print("从AICU")
+        #     getReplyListFromAICU()
+        # except Exception as e:
+        #     print('eeee',e)
 
         try:
             print("根据历史记录查询")
