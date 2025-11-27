@@ -572,6 +572,7 @@ def exportComent(all = True):
     cursor.execute(f"""
         SELECT c.msg, 
                COALESCE(h.title, c.title) as title, 
+               c.flag,
                c.ctime
         FROM comments c
         LEFT JOIN histories h ON c.oid = h.oid
