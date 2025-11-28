@@ -404,14 +404,11 @@ def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
         # 更新计数
         if list is not None and len(list) > 0:
             COUNT += len(list)
-        else:
-            # 列表为空则退出
-            break
         
         # 获取最老评论时间
         timeLst = list[-1].get("ctime") if (list is not None and len(list) > 0) else None
         
-        # 先执行自适应算法，判断是否需要回退或停止
+        # 先执行自适应算法，判断是否需要回退或停止（即使列表为空也要执行，以便回退）
         newPageIdx, newIsPullback, action = _updatePageIndexWithAdaptive(pageIdx, list, historyItem, preQueryIndex, isPullback, seq, Query_Tolerance)
         if action == 'continue':
             # 如果需要回退，直接 continue，不检查终止条件
