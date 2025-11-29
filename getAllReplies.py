@@ -336,7 +336,7 @@ def _updatePageIndexWithAdaptive(pageIdx, list, historyItem, preQueryIndex, isPu
                 newPageIdx = currentQueryIndex + 1   # 回退模式：细粒度步长
                 printD(f"[{seq}] 细粒度扫描: {currentQueryIndex} → {newPageIdx}")
         else:
-            newPageIdx = currentQueryIndex + 10  # 正常模式：粗粒度步长
+            newPageIdx = currentQueryIndex + 5  # 正常模式：粗粒度步长
             printD(f"[{seq}] 快速推进: {currentQueryIndex} → {newPageIdx}")
         
         return newPageIdx, effectiveIsPullback, 'normal'  # 继续正常流程
