@@ -314,14 +314,32 @@ def _updatePageIndexWithAdaptive(pageIdx, list, historyItem, preQueryIndex, isPu
             return newPageIdx, newIsPullback, 'continue'  # 应该 continue（回退）
     else:
         # 还在新评论区域，继续推进
-        if isPullback:
-            newPageIdx = currentQueryIndex + 1   # 回退模式：细粒度步长
-            printD(f"[{seq}] 细粒度扫描: {currentQueryIndex} → {newPageIdx}")
+        # 检查是否需要强制进入pullback模式：如果当前步长不等于1，并且最老评论进入到历史时间+10h内
+        currentStep = currentQueryIndex - preQueryIndex
+        shouldForcePullback = False
+        
+        if historyTime is not None and oldestTime is not None:
+            historyTimeUpperBound = historyTime + 10 * 3600
+            if currentStep != 1 and oldestTime >= historyTime - 10*3600 and oldestTime <= historyTimeUpperBound:
+                shouldForcePullback = True
+                printD(f"[{seq}] 接近历史时间边界（最老评论在历史时间±10h内），进入pullback模式精细查找")
+        
+        # 如果满足条件，强制进入pullback模式
+        effectiveIsPullback = isPullback or shouldForcePullback
+        
+        if effectiveIsPullback:
+            if shouldForcePullback:
+                newPageIdx = preQueryIndex + 1  # 回退模式：细粒度步长
+                printD(f"[{seq}] 接近历史时间边界，回退到安全位置: {currentQueryIndex} → {newPageIdx}")
+                return newPageIdx, effectiveIsPullback, 'continue'  # 回退操作，需要 continue
+            else:
+                newPageIdx = currentQueryIndex + 1   # 回退模式：细粒度步长
+                printD(f"[{seq}] 细粒度扫描: {currentQueryIndex} → {newPageIdx}")
         else:
             newPageIdx = currentQueryIndex + 10  # 正常模式：粗粒度步长
             printD(f"[{seq}] 快速推进: {currentQueryIndex} → {newPageIdx}")
         
-        return newPageIdx, isPullback, 'normal'  # 继续正常流程
+        return newPageIdx, effectiveIsPullback, 'normal'  # 继续正常流程
 
 
 # 获取评论
