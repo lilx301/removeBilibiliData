@@ -24,7 +24,7 @@ BARKKEY = config.getJsonConfig('cfg').get('BARK_KEY')
 """
 全局 5% 概率门控：进程生命周期内固定
 """
-SHOULD_SEND_NOTICE = (random.random() < 0.05)
+SHOULD_SEND_NOTICE = True #(random.random() < 0.05)
 
 
 

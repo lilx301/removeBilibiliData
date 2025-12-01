@@ -94,7 +94,7 @@ def mainfunc():
 删除数量: - {delDiff if isinstance(delDiff, str) else f'{delDiff: 5d}'}
         '''
         print(msg)
-        notice.sendBarkMsg(msg)
+        # notice.sendBarkMsg(msg)
 
         
         print(preNow,dltT)
