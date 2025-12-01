@@ -627,7 +627,13 @@ def test():
 
 def getCommentsAfterTime(timeSec):
     printD('getCommentsAfterTime', timeSec)
-    cursor.execute('SELECT flag, deltime, ctime,title,msg from "comments" where ctime > ? or deltime > ? order by ctime asc', (timeSec, timeSec  ))
+    cursor.execute('''
+        SELECT c.flag, c.deltime, c.ctime, h.title, c.msg 
+        FROM comments c 
+        LEFT JOIN histories h ON c.oid = h.oid 
+        WHERE c.ctime > ? OR c.deltime > ? 
+        ORDER BY c.ctime ASC
+    ''', (timeSec, timeSec))
     rows = cursor.fetchall()
     if rows is not None:
         r = []
