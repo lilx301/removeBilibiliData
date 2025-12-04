@@ -62,6 +62,7 @@ def getValueFromCookie(cookie, name):
 
 def getReqWithCookie():
     session = requests.Session()
+    session.verify = False  # 禁用 SSL 证书验证
     set_cookies_from_string(session,cookie_str=getCookie())
     return session
 
