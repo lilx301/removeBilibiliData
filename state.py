@@ -7,6 +7,7 @@ sys.path.insert(0, os.path.abspath("pylib"))
 
 import db
 from debug import printD ,isDebug
+import tool
 
 import config
 
@@ -109,7 +110,8 @@ def mainfunc():
 
                 msgDetail += f'新评论：{len(arrCmt0)}  \n'
                 for cmt in arrCmt0:
-                    msgDetail += f"[{cmt['title']}]\n   R:{cmt['msg']}\n\n"
+                    timeStr = tool.timeStamp2Str(cmt['ctime'])
+                    msgDetail += f"[{timeStr}] [{cmt['title']}]\n   R:{cmt['msg']}\n\n"
 
 
     
@@ -117,7 +119,8 @@ def mainfunc():
                 msgDetail += f'\n--------\n删除评论：{len(arrCmt1)}\n'
                 for cmt in arrCmt1:
                     # printD("新评论:", cmt)
-                    msgDetail += f"[{cmt['title']}]\n   R:{cmt['msg']}\n\n"
+                    timeStr = tool.timeStamp2Str(cmt['deltime'])
+                    msgDetail += f"[{timeStr}] [{cmt['title']}]\n   R:{cmt['msg']}\n\n"
 
             notice.sendTgMsg(msgDetail)
 
