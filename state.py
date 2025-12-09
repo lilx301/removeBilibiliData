@@ -111,7 +111,7 @@ def mainfunc():
                 msgDetail += f'新评论：{len(arrCmt0)}  \n'
                 for cmt in arrCmt0:
                     timeStr = tool.timeStamp2Str(cmt['ctime'])
-                    msgDetail += f"[{timeStr}] [{cmt['title']}]\n   R:{cmt['msg']}\n\n"
+                    msgDetail += f"[[{cmt['title']}]\n R:{cmt['msg']}\n{timeStr}\n\n"
 
 
     
@@ -120,7 +120,7 @@ def mainfunc():
                 for cmt in arrCmt1:
                     # printD("新评论:", cmt)
                     timeStr = tool.timeStamp2Str(cmt['deltime'])
-                    msgDetail += f"[{timeStr}] [{cmt['title']}]\n   R:{cmt['msg']}\n\n"
+                    msgDetail += f"[[{cmt['title']}]\n R:{cmt['msg']}\n{timeStr}]\n\n"
 
             notice.sendTgMsg(msgDetail)
 
