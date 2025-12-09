@@ -60,9 +60,12 @@ def getValueFromCookie(cookie, name):
             return item[len(name) + 1:]
     return None
 
+from debug import isDebug
+
 def getReqWithCookie():
     session = requests.Session()
-    session.verify = False  # 禁用 SSL 证书验证
+    if isDebug():
+        session.verify = False
     set_cookies_from_string(session,cookie_str=getCookie())
     return session
 
