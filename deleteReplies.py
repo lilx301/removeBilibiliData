@@ -213,7 +213,7 @@ if __name__ == '__main__':
         db.initDB()
         nowSecStamp = int(time.time())
         print('删除时间超过6天的评论')
-        startDelete(nowSecStamp - 24 * 3600 * 5)
+        startDelete(nowSecStamp - 24 * 3600 * 3)
     except KeyboardInterrupt as e:
         printD(e)
     else:
