@@ -119,7 +119,7 @@ def mainfunc():
                 msgDetail += f'\n--------\n删除评论：{len(arrCmt1)}\n'
                 for cmt in arrCmt1:
                     # printD("新评论:", cmt)
-                    timeStr = tool.timeStamp2Str(cmt['deltime'])
+                    timeStr = tool.timeStamp2Str(cmt['ctime'])
                     msgDetail += f"[[{cmt['title']}]\n R:{cmt['msg']}\n{timeStr}]\n\n"
 
             notice.sendTgMsg(msgDetail)
