@@ -21,6 +21,12 @@ from pushback import pushback
 # 查询容差，两次运行4h间隔，这里设置5h
 Query_Tolerance = 5 * 3600
 
+# 子楼 /x/v2/reply/reply：某页处理完后若 max(ctime) < cutoff 则不再翻页。
+# cutoff = view_at - Query_Tolerance - SubReply_Ctime_ExtraSec（与主评论历史边界一致；Extra 越大 cutoff 越早，会多翻几页）。
+# 仅当子楼分页大致为「较新在前、越往后越旧」时安全；若为从旧到新会漏评，请改为 False。
+SubReply_EarlyExit_By_Ctime = True
+SubReply_Ctime_ExtraSec = 0
+
 UID = refreshCookie.getUid()
 
 
@@ -34,10 +40,8 @@ headers = {
         'Host': 'api.bilibili.com',
         'Origin': 'https://space.bilibili.com',
         'Referer': 'https://space.bilibili.com/21307077/fans/fans',
-        'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36"
-        'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8' 
-
-
+        'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36",
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
     }
 session = refreshCookie.getReqWithCookie()
 
@@ -248,22 +252,96 @@ def _updateFirstTime(firstTime, list, pageIdx):
     return firstTime
 
 
-# 私有辅助方法：过滤自己的评论
-def _filterMyComments(list, uid, callback, historyItem, rList):
-    """过滤出自己的评论并调用回调"""
+# 私有辅助方法：递归收集自己的评论（含主列表里嵌套的 replies 预览）
+def _collectMyCommentsFromList(list, uid, rList, filterList):
     if list is None:
-        return []
-    
-    filterList = []
+        return
     for itm in list:
-        if itm.get('mid_str') == uid:
+        is_mine = itm.get('mid_str') == uid
+        if not is_mine and itm.get('mid') is not None:
+            is_mine = str(itm.get('mid')) == str(uid)
+        if is_mine:
             rList.append(itm)
             filterList.append(itm)
-    
+        nested = itm.get('replies')
+        if nested and isinstance(nested, list) and len(nested) > 0:
+            _collectMyCommentsFromList(nested, uid, rList, filterList)
+
+
+def _filterMyComments(list, uid, callback, historyItem, rList):
+    """过滤出自己的评论（含嵌套子回复）并调用回调"""
+    filterList = []
+    _collectMyCommentsFromList(list, uid, rList, filterList)
     if len(filterList) > 0:
         callback(filterList, historyItem)
-    
     return filterList
+
+
+# 子楼 API：https://api.bilibili.com/x/v2/reply/reply （见 bilibili-API-collect docs/comment/list.md）
+def _fetchSubRepliesUnderRoot(session, type_str, oid, root, uid, historyItem, callback, rList, headers, NetRetryMax):
+    """对单条根评论分页拉取楼中楼，找出自己的回复并保存"""
+    sub_total = max(int(root.get('rcount') or 0), int(root.get('count') or 0))
+    if sub_total <= 0:
+        return
+    root_id = root.get('rpid_str') or root.get('rpid')
+    if root_id is None:
+        return
+    root_id = str(root_id)
+    pn = 1
+    ps = 20
+    max_pn = 5000
+    while True:
+        if pn > max_pn:
+            printD('子楼分页达到上限，停止', oid, root_id)
+            break
+        params = {
+            'type': type_str,
+            'oid': oid,
+            'root': root_id,
+            'ps': str(ps),
+            'pn': str(pn),
+        }
+        res = _fetchReplyWithRetry(
+            session, 'https://api.bilibili.com/x/v2/reply/reply', params, headers, NetRetryMax, oid
+        )
+        if res is None:
+            break
+        jObj, err = _parseReplyResponse(res, oid)
+        if err != 0 or jObj is None:
+            break
+        code = jObj.get('code')
+        if code != 0:
+            printD('子楼评论接口非0', oid, root_id, code, jObj.get('message'))
+            break
+        sub_list = getObjWithKeyPath(jObj, 'data.replies')
+        page_info = getObjWithKeyPath(jObj, 'data.page') or {}
+        count_total = int(page_info.get('count') or 0)
+        page_size = int(page_info.get('size') or ps)
+        _filterMyComments(sub_list, uid, callback, historyItem, rList)
+        if sub_list is None or len(sub_list) == 0:
+            break
+        if SubReply_EarlyExit_By_Ctime and historyItem.get('view_at') is not None:
+            cutoff = int(historyItem.get('view_at')) - Query_Tolerance - int(SubReply_Ctime_ExtraSec)
+            ctimes = [int(x.get('ctime')) for x in sub_list if x.get('ctime') is not None]
+            if ctimes and max(ctimes) < cutoff:
+                printD(
+                    '子楼按 ctime 提前结束',
+                    oid,
+                    root_id,
+                    'max_ctime',
+                    max(ctimes),
+                    '< cutoff',
+                    cutoff,
+                )
+                break
+        if count_total > 0:
+            seen = (pn - 1) * page_size + len(sub_list)
+            if seen >= count_total:
+                break
+        elif len(sub_list) < ps:
+            break
+        pn += 1
+        time.sleep(0.8 + random.random() * 0.7)
 
 
 # 私有辅助方法：检查终止条件
@@ -416,9 +494,16 @@ def getRepiesInHistory(historyItem,initPagIdx,seq,callback):
         # 更新首次时间
         firstTime = _updateFirstTime(firstTime, list, pageIdx)
         
-        # 过滤自己的评论
+        # 过滤自己的评论（含主列表嵌套预览）
         _filterMyComments(list, UID, callback, historyItem, rList)
-        
+
+        # 楼中楼：对每条有子回复的根评论拉 /x/v2/reply/reply，收集自己回复别人的评论
+        if list is not None:
+            for root in list:
+                _fetchSubRepliesUnderRoot(
+                    session, type, oid, root, UID, historyItem, callback, rList, headers, NetRetryMax
+                )
+
         # 更新计数
         if list is not None and len(list) > 0:
             COUNT += len(list)
@@ -462,9 +547,15 @@ g_cmt_idx = {}
 
  
 def insertRep(itm,title,extraItm=None):
+    oid_val = itm.get("oid_str")
+    if oid_val is None and itm.get("oid") is not None:
+        oid_val = str(itm.get("oid"))
+    rpid_val = itm.get("rpid_str")
+    if rpid_val is None and itm.get("rpid") is not None:
+        rpid_val = str(itm.get("rpid"))
     cmtObj =  {
-                    "oid":itm.get("oid_str"),
-                    "rpid":itm.get("rpid_str"),
+                    "oid": oid_val,
+                    "rpid": rpid_val,
                     "ctime":itm.get("ctime"),
                     "msg":getObjWithKeyPath(itm,'content.message'),
                     "title":title
