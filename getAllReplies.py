@@ -253,10 +253,10 @@ def _updateFirstTime(firstTime, list, pageIdx):
 
 
 # 私有辅助方法：递归收集自己的评论（含主列表里嵌套的 replies 预览）
-def _collectMyCommentsFromList(list, uid, rList, filterList):
-    if list is None:
+def _collectMyCommentsFromList(items, uid, rList, filterList):
+    if items is None:
         return
-    for itm in list:
+    for itm in items:
         is_mine = itm.get('mid_str') == uid
         if not is_mine and itm.get('mid') is not None:
             is_mine = str(itm.get('mid')) == str(uid)
